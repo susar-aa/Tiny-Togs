@@ -731,9 +731,17 @@ $(document).ready(function() {
             let best = null, minScore = 9999;
             candidates.forEach(c => {
                 let score = Math.abs(c.date.getFullYear() - currY);
+                
+                // Heavy penalty for future dates
                 if (c.date.getFullYear() > currY + 1) score += 20;
-                if (c.fmt === 'DDDY' && digits.length >= 5) score += 50;
-                if (c.fmt === 'YYDDD') score += 1;
+                
+                // Bonus for explicit 2-digit years (more reliable than guessing the decade)
+                if (c.fmt === 'DDDYY' || c.fmt === 'YYDDD') score -= 5;
+                
+                // Bonus for exact length match (consumes all digits provided without ignoring trailing characters)
+                let expectedLen = (c.fmt === 'DDDYY' || c.fmt === 'YYDDD') ? 5 : 4;
+                if (digits.length === expectedLen) score -= 10;
+                
                 if (score < minScore) { minScore = score; best = c.date; }
             });
             mfdDate = best;
