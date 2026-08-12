@@ -533,7 +533,6 @@ $(document).ready(function() {
     $('#mfdDayGrid, #expDayGrid').html(dayHtml);
 
     $('.date-trigger').on('click', function(e) {
-        e.stopPropagation();
         let popup = $(this).siblings('.date-popup');
         let isOpen = popup.hasClass('active');
         $('.date-popup').removeClass('active');
@@ -541,11 +540,12 @@ $(document).ready(function() {
         if (!isOpen) { popup.addClass('active'); $(this).addClass('open'); }
     });
 
-    $(document).on('click', function() {
-        $('.date-popup').removeClass('active');
-        $('.date-trigger').removeClass('open');
+    $(document).on('click', function(e) {
+        if (!$(e.target).closest('.date-trigger').length && !$(e.target).closest('.date-popup').length) {
+            $('.date-popup').removeClass('active');
+            $('.date-trigger').removeClass('open');
+        }
     });
-    $('.date-popup').on('click', e => e.stopPropagation());
 
     $(document).on('click', '.grid-item', function() {
         let btn = $(this);
