@@ -1,15 +1,25 @@
 <?php
-require_once __DIR__ . '/config/bootstrap.php';
-use Config\Database;
+// Standalone DB Connection
+$host = 'localhost';
+$dbname = 'tiny_togs';
+$username = 'suzxlabs';
+$password = 'Susara@200611003614';
+
+try {
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_EMULATE_PREPARES => false,
+    ]);
+} catch (PDOException $e) {
+    die("Database connection failed.");
+}
 
 // Handle AJAX Requests
 if (isset($_REQUEST['action'])) {
     $action = $_REQUEST['action'];
-    $db = Database::getConnection();
-
     if ($action === 'search_product') {
         $term = $_GET['term'] ?? '';
-        $stmt = $db->prepare("SELECT product_name FROM label_products WHERE product_name LIKE :term ORDER BY product_name ASC LIMIT 10");
+        $stmt = $pdo->prepare("SELECT product_name FROM label_products WHERE product_name LIKE :term ORDER BY product_name ASC LIMIT 10");
         $stmt->execute(['term' => '%' . $term . '%']);
         $results = $stmt->fetchAll(PDO::FETCH_COLUMN);
         header('Content-Type: application/json');
@@ -20,7 +30,7 @@ if (isset($_REQUEST['action'])) {
     if ($action === 'save_product') {
         $name = trim($_POST['product_name'] ?? '');
         if ($name) {
-            $stmt = $db->prepare("INSERT IGNORE INTO label_products (product_name) VALUES (:name)");
+            $stmt = $pdo->prepare("INSERT IGNORE INTO label_products (product_name) VALUES (:name)");
             $stmt->execute(['name' => $name]);
             echo json_encode(['status' => 'success']);
         } else {
@@ -29,154 +39,252 @@ if (isset($_REQUEST['action'])) {
         exit;
     }
 }
-
-$current_page = 'label-printing.php';
-include __DIR__ . '/views/layout/header.php';
 ?>
-
-<style>
-    /* UI Styling */
-    .preview-box {
-        width: 100%;
-        max-width: 300px;
-        aspect-ratio: 2 / 1;
-        border: 2px dashed var(--ios-blue);
-        background: #fff;
-        border-radius: 8px;
-        padding: 10px;
-        margin-top: 15px;
-        font-family: Arial, sans-serif;
-        color: #000;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        box-shadow: var(--ios-shadow-sm);
-    }
-    
-    .preview-product {
-        font-weight: 700;
-        font-size: 14px;
-        line-height: 1.1;
-        margin-bottom: 6px;
-        text-transform: uppercase;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-    
-    .preview-date {
-        font-size: 11px;
-        line-height: 1.2;
-        font-weight: 600;
-    }
-
-    .suggestion-btn {
-        font-size: 0.8rem;
-        padding: 0.3rem 0.6rem;
-        margin-right: 0.5rem;
-        margin-top: 0.5rem;
-        border-radius: 12px;
-        background: var(--ios-gray-5);
-        border: none;
-        color: var(--ios-blue);
-        font-weight: 600;
-        transition: background 0.2s;
-    }
-    .suggestion-btn:hover {
-        background: var(--ios-gray-4);
-    }
-
-    .autocomplete-list {
-        position: absolute;
-        z-index: 1000;
-        width: 100%;
-        background: #fff;
-        border: 1px solid var(--ios-gray-4);
-        border-radius: 8px;
-        max-height: 200px;
-        overflow-y: auto;
-        box-shadow: var(--ios-shadow);
-        display: none;
-    }
-    .autocomplete-item {
-        padding: 10px;
-        cursor: pointer;
-        border-bottom: 1px solid var(--ios-gray-5);
-    }
-    .autocomplete-item:hover {
-        background: var(--ios-gray-6);
-    }
-
-    /* Print Styling for Zebra ZD230 (50mm x 25mm, 2 per row) */
-    @media print {
-        body * {
-            visibility: hidden;
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tiny Togs - Label Printing</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --ios-bg: #f2f2f7;
+            --ios-card: #ffffff;
+            --ios-blue: #007aff;
+            --ios-blue-hover: #0066d6;
+            --ios-green: #34c759;
+            --ios-gray-4: #d1d1d6;
+            --ios-gray-5: #e5e5ea;
+            --ios-gray-6: #f2f2f7;
+            --ios-label: #1c1c1e;
+            --ios-secondary-label: #6b6b70;
+            --ios-radius: 18px;
+            --ios-shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.04);
+            --ios-font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
-        #print-container, #print-container * {
-            visibility: visible;
+
+        body {
+            background-color: var(--ios-bg);
+            font-family: var(--ios-font);
+            color: var(--ios-label);
+            -webkit-font-smoothing: antialiased;
         }
-        #print-container {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100mm;
-            margin: 0;
-            padding: 0;
+
+        .ios-wrap {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        .ios-page-title {
+            font-size: 1.85rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--ios-label);
+            margin: 0 0 0.4rem 0;
             display: flex;
-            flex-wrap: wrap;
-            align-content: flex-start;
+            align-items: center;
+            gap: 0.65rem;
         }
-        .print-label {
-            width: 50mm;
-            height: 25mm;
-            box-sizing: border-box;
-            padding: 2mm 3mm;
-            overflow: hidden;
+
+        .ios-page-title .icon-badge {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #007aff, #4aa3ff);
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.35);
+        }
+
+        .ios-btn {
+            border: none;
+            border-radius: 980px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            padding: 0.6rem 1.2rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            line-height: 1;
+        }
+
+        .ios-btn-primary {
+            background: var(--ios-blue);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(0, 122, 255, 0.3);
+        }
+
+        .ios-btn-primary:hover {
+            background: var(--ios-blue-hover);
+            color: #fff;
+        }
+
+        .card {
+            border-radius: var(--ios-radius);
+            border: none;
+            box-shadow: var(--ios-shadow-sm);
+        }
+
+        /* UI Styling */
+        .preview-box {
+            width: 100%;
+            max-width: 300px;
+            aspect-ratio: 2 / 1;
+            border: 2px dashed var(--ios-blue);
+            background: #fff;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 15px;
             font-family: Arial, sans-serif;
             color: #000;
-            background: #fff;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            page-break-inside: avoid;
+            box-shadow: var(--ios-shadow-sm);
         }
-        .print-product {
+        
+        .preview-product {
             font-weight: 700;
-            font-size: 9pt;
-            line-height: 1;
-            margin-bottom: 2mm;
+            font-size: 14px;
+            line-height: 1.1;
+            margin-bottom: 6px;
             text-transform: uppercase;
-            max-height: 18pt;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
             overflow: hidden;
         }
-        .print-date {
-            font-size: 7.5pt;
-            line-height: 1.1;
+        
+        .preview-date {
+            font-size: 11px;
+            line-height: 1.2;
             font-weight: 600;
         }
-        @page {
-            size: 100mm 25mm;
-            margin: 0;
+
+        .suggestion-btn {
+            font-size: 0.8rem;
+            padding: 0.3rem 0.6rem;
+            margin-right: 0.5rem;
+            margin-top: 0.5rem;
+            border-radius: 12px;
+            background: var(--ios-gray-5);
+            border: none;
+            color: var(--ios-blue);
+            font-weight: 600;
+            transition: background 0.2s;
         }
-    }
-</style>
+        .suggestion-btn:hover {
+            background: var(--ios-gray-4);
+        }
+
+        .autocomplete-list {
+            position: absolute;
+            z-index: 1000;
+            width: 100%;
+            background: #fff;
+            border: 1px solid var(--ios-gray-4);
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+            display: none;
+        }
+        .autocomplete-item {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--ios-gray-5);
+        }
+        .autocomplete-item:hover {
+            background: var(--ios-gray-6);
+        }
+
+        /* Print Styling for Zebra ZD230 (50mm x 25mm, 2 per row) */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #print-container, #print-container * {
+                visibility: visible;
+            }
+            #print-container {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100mm;
+                margin: 0;
+                padding: 0;
+                display: flex;
+                flex-wrap: wrap;
+                align-content: flex-start;
+            }
+            .print-label {
+                width: 50mm;
+                height: 25mm;
+                box-sizing: border-box;
+                padding: 2mm 3mm;
+                overflow: hidden;
+                font-family: Arial, sans-serif;
+                color: #000;
+                background: #fff;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                page-break-inside: avoid;
+            }
+            .print-product {
+                font-weight: 700;
+                font-size: 9pt;
+                line-height: 1;
+                margin-bottom: 2mm;
+                text-transform: uppercase;
+                max-height: 18pt;
+                overflow: hidden;
+            }
+            .print-date {
+                font-size: 7.5pt;
+                line-height: 1.1;
+                font-weight: 600;
+            }
+            @page {
+                size: 100mm 25mm;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
 
 <div class="ios-wrap">
-    <div class="ios-page-header">
+    <div class="d-flex align-items-center justify-content-between mb-4">
         <div>
             <h1 class="ios-page-title">
-                <div class="icon-badge"><i class="fa-solid fa-print"></i></div>
+                <div class="icon-badge"><i class="fa-solid fa-tags"></i></div>
                 Label Printing
             </h1>
-            <p class="ios-page-subtitle">Generate optimized stickers for Zebra ZD230</p>
+            <p class="text-muted mb-0">Generate optimized stickers for Zebra ZD230</p>
         </div>
+        <a href="../" class="ios-btn" style="background: var(--ios-gray-5); color: var(--ios-label);">
+            <i class="fa-solid fa-house"></i> Portal Home
+        </a>
     </div>
 
     <div class="row">
         <!-- Left Panel: Form -->
         <div class="col-lg-8 mb-4">
-            <div class="card" style="border-radius: var(--ios-radius); border: none; box-shadow: var(--ios-shadow-sm);">
+            <div class="card">
                 <div class="card-body p-4">
                     <form id="printForm">
                         
@@ -225,7 +333,7 @@ include __DIR__ . '/views/layout/header.php';
                             </div>
                         </div>
 
-                        <button type="submit" class="ios-btn ios-btn-primary w-100 py-3" style="font-size: 1.1rem;">
+                        <button type="submit" class="ios-btn ios-btn-primary w-100 py-3" style="font-size: 1.1rem; justify-content: center;">
                             <i class="fa-solid fa-print"></i> PRINT LABELS
                         </button>
 
@@ -236,9 +344,9 @@ include __DIR__ . '/views/layout/header.php';
 
         <!-- Right Panel: CheckFresh Reference -->
         <div class="col-lg-4">
-            <div class="card" style="border-radius: var(--ios-radius); border: none; box-shadow: var(--ios-shadow-sm); background-color: #f8f9fa;">
+            <div class="card" style="background-color: #f8f9fa;">
                 <div class="card-body p-4 text-center">
-                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-flask"></i> Aveeno CheckFresh</h5>
+                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-flask text-primary"></i> Aveeno CheckFresh</h5>
                     <p class="text-muted small mb-4">Use the official CheckFresh website to manually check your Aveeno batch code and verify the date of manufacture. Then, enter the dates manually in the form.</p>
                     
                     <a href="https://www.checkfresh.com/aveeno.html?lang=en" target="_blank" class="ios-btn" style="background: var(--ios-blue); color: #fff; width: 100%; justify-content: center;">
@@ -324,7 +432,7 @@ $(document).ready(function() {
             return;
         }
         timeout = setTimeout(() => {
-            $.getJSON('label-printing.php?action=search_product', { term: val }, function(data) {
+            $.getJSON('index.php?action=search_product', { term: val }, function(data) {
                 $('#autocompleteList').empty();
                 if(data.length > 0) {
                     data.forEach(item => {
@@ -367,7 +475,7 @@ $(document).ready(function() {
         const use = $('#usablePeriod').val();
         
         // Save product name via AJAX
-        $.post('label-printing.php', { action: 'save_product', product_name: name });
+        $.post('index.php', { action: 'save_product', product_name: name });
 
         // Generate Print HTML
         const container = $('#print-container');
@@ -392,12 +500,5 @@ $(document).ready(function() {
     });
 });
 </script>
-
-<?php
-// Include footer if exists, otherwise just close HTML
-if (file_exists(__DIR__ . '/views/layout/footer.php')) {
-    include __DIR__ . '/views/layout/footer.php';
-} else {
-    echo '</body></html>';
-}
-?>
+</body>
+</html>
