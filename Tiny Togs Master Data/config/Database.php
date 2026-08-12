@@ -6,7 +6,7 @@ use PDOException;
 
 class Database {
     private static $host = 'localhost';
-    private static $db_name = 'tiny_togs_unified';
+    private static $db_name = 'tiny_togs';
     private static $username = 'suzxlabs';
     private static $password = 'Susara@200611003614';
     private static $conn = null;
