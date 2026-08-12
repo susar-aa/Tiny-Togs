@@ -343,25 +343,17 @@ if (isset($_REQUEST['action'])) {
         </div>
 
         <!-- Right Panel: CheckFresh Reference -->
-        <div class="col-lg-4">
-            <div class="card" style="background-color: #f8f9fa;">
-                <div class="card-body p-4 text-center">
-                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-flask text-primary"></i> Aveeno CheckFresh</h5>
-                    <p class="text-muted small mb-4">Use the official CheckFresh website to manually check your Aveeno batch code and verify the date of manufacture. Then, enter the dates manually in the form.</p>
-                    
-                    <a href="https://www.checkfresh.com/aveeno.html?lang=en" target="_blank" class="ios-btn" style="background: var(--ios-blue); color: #fff; width: 100%; justify-content: center;">
-                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Open CheckFresh
-                    </a>
-                    
-                    <div class="mt-4 p-3 rounded" style="background: rgba(0, 122, 255, 0.1); border-left: 4px solid var(--ios-blue); text-align: left;">
-                        <strong class="d-block mb-1" style="color: var(--ios-blue); font-size: 0.9rem;">Workflow:</strong>
-                        <ol class="small text-muted mb-0 ps-3">
-                            <li>Check batch code on CheckFresh.</li>
-                            <li>Read Manufacture Date.</li>
-                            <li>Type it into the left panel.</li>
-                            <li>Print your labels.</li>
-                        </ol>
-                    </div>
+        <div class="col-lg-4 d-flex flex-column" style="min-height: 600px;">
+            <div class="card flex-grow-1" style="background-color: #f8f9fa; border: none; overflow: hidden; border-radius: var(--ios-radius); box-shadow: var(--ios-shadow-sm);">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="fw-bold mb-0 text-center"><i class="fa-solid fa-flask text-primary"></i> Aveeno CheckFresh</h5>
+                </div>
+                <div class="card-body p-0 d-flex flex-column">
+                    <iframe 
+                        src="https://www.checkfresh.com/aveeno.html?lang=en" 
+                        style="width: 100%; height: 100%; min-height: 600px; border: none; flex-grow: 1;"
+                        title="CheckFresh Aveeno"
+                    ></iframe>
                 </div>
             </div>
         </div>
