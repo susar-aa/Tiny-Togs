@@ -557,18 +557,31 @@ $(document).ready(function() {
             }
         }
 
-        // Pick the most plausible date (closest to current year)
+        // Pick the most plausible date
         if (candidates.length > 0) {
             let best = null;
-            let minDiff = 9999;
+            let minScore = 9999;
             
             candidates.forEach(c => {
                 let yDiff = Math.abs(c.date.getFullYear() - currentYear);
+                let score = yDiff;
+
                 // Heavily penalize future dates (unless they are within 1 year)
-                if (c.date.getFullYear() > currentYear + 1) yDiff += 20;
+                if (c.date.getFullYear() > currentYear + 1) score += 20;
+
+                // Penalize DDDY format if the user provided 5 or more digits
+                // (Because DDDYY or YYDDD utilizes more of the provided information)
+                if (c.format === 'DDDY' && digits.length >= 5) {
+                    score += 50;
+                }
                 
-                if (yDiff < minDiff) {
-                    minDiff = yDiff;
+                // Slight tie-breaker: DDDYY is more common than YYDDD for Aveeno
+                if (c.format === 'YYDDD') {
+                    score += 1;
+                }
+                
+                if (score < minScore) {
+                    minScore = score;
                     best = c.date;
                 }
             });
