@@ -342,24 +342,40 @@ if (isset($_REQUEST['action'])) {
             </div>
         </div>
 
-        <!-- Right Panel: CheckFresh Reference -->
-        <div class="col-lg-4 d-flex flex-column" style="min-height: 600px;">
-            <div class="card flex-grow-1" style="background-color: #f8f9fa; border: none; overflow: hidden; border-radius: var(--ios-radius); box-shadow: var(--ios-shadow-sm);">
-                <div class="card-header bg-white border-bottom py-3">
-                    <h5 class="fw-bold mb-0 text-center"><i class="fa-solid fa-flask text-primary"></i> Aveeno CheckFresh</h5>
-                </div>
-                <div class="card-body p-0 d-flex flex-column" style="position: relative;">
-                    <!-- Fallback button over the iframe just in case proxy fails -->
-                    <div style="position: absolute; top: 10px; right: 10px; z-index: 100;">
-                        <a href="https://www.checkfresh.com/aveeno.html?lang=en" target="_blank" class="ios-btn" style="background: rgba(0, 122, 255, 0.9); color: #fff; padding: 0.4rem 0.8rem; font-size: 0.8rem; backdrop-filter: blur(4px);">
-                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Open in Tab
-                        </a>
+        <!-- Right Panel: Native Batch Code Decoder -->
+        <div class="col-lg-4">
+            <div class="card" style="background-color: #f8f9fa; border-radius: var(--ios-radius); border: none; box-shadow: var(--ios-shadow-sm);">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3 text-center"><i class="fa-solid fa-wand-magic-sparkles text-primary"></i> Batch Code Decoder</h5>
+                    <p class="text-muted small mb-4 text-center">Instantly decode J&J / Aveeno batch codes without leaving this page! (Supports standard DDDY, DDDYY, and YYDDD formats).</p>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Enter Batch / Lot Code</label>
+                        <div class="input-group">
+                            <input type="text" id="batchCodeInput" class="form-control" placeholder="e.g., 1234V or 23123">
+                            <button class="ios-btn ios-btn-primary" type="button" id="decodeBtn" style="border-radius: 0 12px 12px 0;">Decode</button>
+                        </div>
                     </div>
-                    <iframe 
-                        src="proxy.php" 
-                        style="width: 100%; height: 100%; min-height: 600px; border: none; flex-grow: 1;"
-                        title="CheckFresh Aveeno"
-                    ></iframe>
+
+                    <div id="decodeResult" class="d-none mt-4 p-3 rounded" style="background: #fff; border: 1px solid var(--ios-gray-5);">
+                        <div class="text-center mb-2">
+                            <span class="badge bg-success mb-2">Code Decoded Successfully</span>
+                            <div style="font-size: 0.85rem; color: var(--ios-secondary-label);">Manufacture Date:</div>
+                            <div id="decodedMfdText" class="fw-bold fs-5 text-dark mt-1"></div>
+                        </div>
+                        <button type="button" id="applyMfdBtn" class="ios-btn w-100 mt-3" style="background: var(--ios-gray-5); color: var(--ios-blue); justify-content: center; font-size: 0.9rem;">
+                            <i class="fa-solid fa-arrow-left"></i> Use this MFD
+                        </button>
+                    </div>
+
+                    <div id="decodeError" class="d-none mt-3 text-danger small text-center fw-bold">
+                        Could not recognize this batch code format.
+                    </div>
+
+                    <div class="mt-4 p-3 rounded" style="background: rgba(0, 122, 255, 0.1); border-left: 4px solid var(--ios-blue);">
+                        <strong class="d-block mb-1" style="color: var(--ios-blue); font-size: 0.8rem;">How it works:</strong>
+                        <p class="small text-muted mb-0" style="font-size: 0.75rem;">Aveeno uses Julian dates. A code like <strong>12324</strong> means the 123rd day of 2024. This tool calculates the exact calendar date automatically!</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -495,6 +511,77 @@ $(document).ready(function() {
         setTimeout(() => {
             window.print();
         }, 100);
+    });
+
+    // ---- Native Batch Code Decoder Logic ----
+    $('#decodeBtn').on('click', function() {
+        let code = $('#batchCodeInput').val().toUpperCase();
+        let digits = code.replace(/\D/g, ''); // Extract only numbers
+        let mfdDate = null;
+        let currentYear = new Date().getFullYear();
+
+        $('#decodeError').addClass('d-none');
+        $('#decodeResult').addClass('d-none');
+
+        if (digits.length >= 4 && digits.length <= 5) {
+            let ddd = parseInt(digits.substring(0, 3));
+            let parsedDate = null;
+
+            if (ddd >= 1 && ddd <= 366) {
+                // Potential format: DDDY or DDDYY
+                let y = digits.substring(3);
+                let year = 2000;
+                
+                if (y.length === 1) {
+                    // DDDY (e.g. 4 => 2024 or 2014)
+                    let lastDigitCurrent = currentYear % 10;
+                    let numY = parseInt(y);
+                    // Assume it's in the current decade if it matches, otherwise previous decade if it's way in future
+                    let potentialYear = Math.floor(currentYear / 10) * 10 + numY;
+                    if (potentialYear > currentYear + 1) potentialYear -= 10;
+                    year = potentialYear;
+                } else if (y.length === 2) {
+                    // DDDYY (e.g. 24 => 2024)
+                    year = 2000 + parseInt(y);
+                }
+
+                // Calculate Date from Julian Day
+                parsedDate = new Date(year, 0); // Jan 1st
+                parsedDate.setDate(ddd);
+            } 
+            else if (digits.length === 5) {
+                // Potential format YYDDD
+                let yy = parseInt(digits.substring(0, 2));
+                let ddd = parseInt(digits.substring(2, 5));
+                if (ddd >= 1 && ddd <= 366) {
+                    let year = 2000 + yy;
+                    parsedDate = new Date(year, 0);
+                    parsedDate.setDate(ddd);
+                }
+            }
+
+            if (parsedDate && !isNaN(parsedDate.getTime())) {
+                mfdDate = parsedDate;
+            }
+        }
+
+        if (mfdDate) {
+            let isoDate = mfdDate.toISOString().split('T')[0];
+            let displayDate = mfdDate.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+            
+            $('#decodedMfdText').text(displayDate);
+            $('#applyMfdBtn').data('date', isoDate);
+            $('#decodeResult').removeClass('d-none');
+        } else {
+            $('#decodeError').removeClass('d-none');
+        }
+    });
+
+    $('#applyMfdBtn').on('click', function() {
+        let isoDate = $(this).data('date');
+        $('#mfdDate').val(isoDate).trigger('change');
+        $('#batchCodeInput').val('');
+        $('#decodeResult').addClass('d-none');
     });
 });
 </script>
