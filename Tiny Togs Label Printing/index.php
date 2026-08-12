@@ -1,5 +1,4 @@
 <?php
-// Standalone DB Connection
 $host = 'localhost';
 $dbname = 'tiny_togs';
 $username = 'suzxlabs';
@@ -14,7 +13,6 @@ try {
     die("Database connection failed.");
 }
 
-// Handle AJAX Requests
 if (isset($_REQUEST['action'])) {
     $action = $_REQUEST['action'];
     if ($action === 'search_product') {
@@ -26,7 +24,6 @@ if (isset($_REQUEST['action'])) {
         echo json_encode($results);
         exit;
     }
-
     if ($action === 'save_product') {
         $name = trim($_POST['product_name'] ?? '');
         if ($name) {
@@ -41,446 +38,585 @@ if (isset($_REQUEST['action'])) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tiny Togs - Label Printing</title>
-    <!-- Google Fonts -->
+    <title>Label Printing — Tiny Togs</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- FontAwesome Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
     <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
         :root {
-            --ios-bg: #f2f2f7;
-            --ios-card: #ffffff;
-            --ios-blue: #007aff;
-            --ios-blue-hover: #0066d6;
-            --ios-green: #34c759;
-            --ios-gray-4: #d1d1d6;
-            --ios-gray-5: #e5e5ea;
-            --ios-gray-6: #f2f2f7;
-            --ios-label: #1c1c1e;
-            --ios-secondary-label: #6b6b70;
-            --ios-radius: 18px;
-            --ios-shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.04);
-            --ios-font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --blue: #007aff;
+            --blue-light: #e8f3ff;
+            --blue-dark: #0063d1;
+            --green: #34c759;
+            --green-light: #e6f9ed;
+            --orange: #ff9500;
+            --orange-light: #fff3e0;
+            --purple: #af52de;
+            --purple-light: #f3eafb;
+            --bg: #f2f2f7;
+            --card: #ffffff;
+            --label: #1c1c1e;
+            --secondary: #6b6b70;
+            --tertiary: #aeaeb2;
+            --sep: #e5e5ea;
+            --sep2: #f2f2f7;
+            --radius: 16px;
+            --radius-sm: 10px;
+            --shadow: 0 1px 8px rgba(0,0,0,0.06), 0 4px 20px rgba(0,0,0,0.04);
+            --font: -apple-system, BlinkMacSystemFont, "Inter", "SF Pro Display", "Segoe UI", sans-serif;
         }
+
+        html, body { height: 100%; overflow: hidden; }
 
         body {
-            background-color: var(--ios-bg);
-            font-family: var(--ios-font);
-            color: var(--ios-label);
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--label);
             -webkit-font-smoothing: antialiased;
-        }
-
-        .ios-wrap {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem 1rem;
-        }
-
-        .ios-page-title {
-            font-size: 1.85rem;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            color: var(--ios-label);
-            margin: 0 0 0.4rem 0;
-            display: flex;
-            align-items: center;
-            gap: 0.65rem;
-        }
-
-        .ios-page-title .icon-badge {
-            width: 42px;
-            height: 42px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #007aff, #4aa3ff);
-            color: #fff;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.1rem;
-            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.35);
-        }
-
-        .ios-btn {
-            border: none;
-            border-radius: 980px;
-            font-weight: 600;
-            font-size: 0.88rem;
-            padding: 0.6rem 1.2rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.45rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-decoration: none;
-            line-height: 1;
-        }
-
-        .ios-btn-primary {
-            background: var(--ios-blue);
-            color: #fff;
-            box-shadow: 0 4px 14px rgba(0, 122, 255, 0.3);
-        }
-
-        .ios-btn-primary:hover {
-            background: var(--ios-blue-hover);
-            color: #fff;
-        }
-
-        .card {
-            border-radius: var(--ios-radius);
-            border: none;
-            box-shadow: var(--ios-shadow-sm);
-        }
-
-        /* UI Styling */
-        .preview-box {
-            width: 100%;
-            max-width: 300px;
-            aspect-ratio: 2 / 1;
-            border: 2px dashed var(--ios-blue);
-            background: #fff;
-            border-radius: 8px;
-            padding: 10px;
-            margin-top: 15px;
-            font-family: Arial, sans-serif;
-            color: #000;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            box-shadow: var(--ios-shadow-sm);
-        }
-        
-        .preview-product {
-            font-weight: 700;
-            font-size: 14px;
-            line-height: 1.1;
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        
-        .preview-date {
-            font-size: 11px;
-            line-height: 1.2;
-            font-weight: 600;
         }
 
-        .suggestion-btn {
-            font-size: 0.8rem;
-            padding: 0.3rem 0.6rem;
-            margin-right: 0.5rem;
-            margin-top: 0.5rem;
-            border-radius: 12px;
-            background: var(--ios-gray-5);
-            border: none;
-            color: var(--ios-blue);
-            font-weight: 600;
-            transition: background 0.2s;
+        /* ── TOP NAV ── */
+        .topnav {
+            height: 52px;
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--sep);
+            display: flex;
+            align-items: center;
+            padding: 0 1.25rem;
+            gap: 0.75rem;
+            flex-shrink: 0;
+            z-index: 100;
         }
-        .suggestion-btn:hover {
-            background: var(--ios-gray-4);
-        }
-
-        .autocomplete-list {
-            position: absolute;
-            z-index: 1000;
-            width: 100%;
-            background: #fff;
-            border: 1px solid var(--ios-gray-4);
+        .topnav-icon {
+            width: 32px; height: 32px;
+            background: linear-gradient(135deg, var(--blue), #5ac8fa);
             border-radius: 8px;
-            max-height: 200px;
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 0.9rem;
+        }
+        .topnav-title { font-weight: 700; font-size: 1rem; letter-spacing: -0.01em; }
+        .topnav-sub { font-size: 0.78rem; color: var(--secondary); margin-left: 2px; }
+        .topnav-spacer { flex: 1; }
+        .nav-btn {
+            display: inline-flex; align-items: center; gap: 0.35rem;
+            padding: 0.4rem 0.85rem; border-radius: 980px;
+            font-size: 0.8rem; font-weight: 600; cursor: pointer;
+            border: none; text-decoration: none; transition: 0.18s ease;
+        }
+        .nav-btn-ghost { background: var(--sep2); color: var(--label); }
+        .nav-btn-ghost:hover { background: var(--sep); }
+        .nav-btn-blue { background: var(--blue); color: #fff; box-shadow: 0 3px 10px rgba(0,122,255,0.28); }
+        .nav-btn-blue:hover { background: var(--blue-dark); color: #fff; }
+
+        /* ── MAIN LAYOUT ── */
+        .dashboard {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 0;
+            overflow: hidden;
+            height: calc(100vh - 52px);
+        }
+
+        /* ── LEFT PANEL ── */
+        .left-panel {
             overflow-y: auto;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .left-panel::-webkit-scrollbar { width: 5px; }
+        .left-panel::-webkit-scrollbar-track { background: transparent; }
+        .left-panel::-webkit-scrollbar-thumb { background: var(--sep); border-radius: 3px; }
+
+        /* ── RIGHT PANEL ── */
+        .right-panel {
+            border-left: 1px solid var(--sep);
+            background: #fff;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        .right-panel::-webkit-scrollbar { width: 4px; }
+        .right-panel::-webkit-scrollbar-track { background: transparent; }
+        .right-panel::-webkit-scrollbar-thumb { background: var(--sep); border-radius: 3px; }
+        .right-panel-header {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--sep);
+            display: flex; align-items: center; gap: 0.6rem;
+            font-weight: 700; font-size: 0.9rem;
+            flex-shrink: 0;
+            background: var(--bg);
+        }
+        .right-panel-body { padding: 1.25rem; flex: 1; display: flex; flex-direction: column; gap: 1rem; }
+
+        /* ── SECTION CARD ── */
+        .section-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: visible;
+        }
+        .section-card-header {
+            padding: 0.9rem 1.1rem 0;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--secondary);
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+        .section-card-body { padding: 0.75rem 1.1rem 1.1rem; }
+
+        /* ── FORM ELEMENTS ── */
+        label.field-label {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--secondary);
+            margin-bottom: 0.4rem;
+            letter-spacing: 0.02em;
+        }
+        .field-input {
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            border: 1.5px solid var(--sep);
+            border-radius: var(--radius-sm);
+            font-family: var(--font);
+            font-size: 0.9rem;
+            color: var(--label);
+            background: #fff;
+            outline: none;
+            transition: border-color 0.18s;
+        }
+        .field-input:focus { border-color: var(--blue); }
+        .field-input::placeholder { color: var(--tertiary); }
+
+        /* ── DATE GRID ── */
+        .date-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+        .date-dropdowns { display: flex; gap: 0.5rem; }
+        .date-dropdown { position: relative; flex: 1; }
+        .date-display {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0.6rem 0.7rem;
+            border: 1.5px solid var(--sep);
+            border-radius: var(--radius-sm);
+            background: #fff; cursor: pointer;
+            font-size: 0.85rem; font-weight: 500; color: var(--label);
+            transition: border-color 0.18s;
+            user-select: none;
+        }
+        .date-display:hover, .date-display.open { border-color: var(--blue); }
+        .date-display .dd-arrow { font-size: 0.65rem; color: var(--tertiary); transition: transform 0.2s; }
+        .date-display.open .dd-arrow { transform: rotate(180deg); }
+        .date-grid-popup {
             display: none;
+            position: absolute; top: calc(100% + 4px); left: 0;
+            z-index: 500; background: #fff;
+            border: 1px solid var(--sep);
+            border-radius: 12px;
+            padding: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.14);
         }
-        .autocomplete-item {
-            padding: 10px;
-            cursor: pointer;
-            border-bottom: 1px solid var(--ios-gray-5);
-        }
-        .autocomplete-item:hover {
-            background: var(--ios-gray-6);
-        }
-
-        /* Custom Date Grid Dropdown Styling */
-        .date-dropdown { position: relative; user-select: none; flex: 1; }
-        .date-display { border: 1px solid var(--ios-gray-4); border-radius: 8px; padding: 0.5rem; background: #fff; cursor: pointer; text-align: center; font-weight: 500; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center; }
-        .date-display:after { content: '\f0d7'; font-family: "Font Awesome 6 Free"; font-weight: 900; font-size: 0.8rem; color: var(--ios-gray-3); }
-        .date-display:hover { background: var(--ios-gray-6); }
-        .date-grid-popup { display: none; position: absolute; top: 100%; left: 0; z-index: 1000; background: #fff; border: 1px solid var(--ios-gray-4); border-radius: 12px; padding: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); margin-top: 5px; }
         .date-grid-popup.active { display: block; }
-        .grid-container { display: grid; gap: 5px; }
-        .grid-years { grid-template-columns: repeat(4, 1fr); width: 280px; }
-        .grid-months { grid-template-columns: repeat(4, 1fr); width: 240px; }
-        .grid-days { grid-template-columns: repeat(7, 1fr); width: 280px; }
-        .grid-btn { border: none; background: var(--ios-gray-6); border-radius: 6px; padding: 8px 0; text-align: center; cursor: pointer; font-size: 0.85rem; color: var(--ios-label); transition: 0.2s; }
-        .grid-btn:hover { background: var(--ios-gray-4); }
-        .grid-btn.selected { background: var(--ios-blue); color: #fff; font-weight: bold; }
+        .grid-container { display: grid; gap: 4px; }
+        .grid-years { grid-template-columns: repeat(4, 1fr); width: 248px; }
+        .grid-months { grid-template-columns: repeat(4, 1fr); width: 210px; }
+        .grid-days { grid-template-columns: repeat(7, 1fr); width: 248px; }
+        .grid-btn {
+            border: none; background: var(--sep2);
+            border-radius: 6px; padding: 7px 0;
+            text-align: center; cursor: pointer;
+            font-size: 0.8rem; color: var(--label);
+            transition: 0.15s; font-family: var(--font);
+        }
+        .grid-btn:hover { background: var(--sep); }
+        .grid-btn.selected { background: var(--blue); color: #fff; font-weight: 700; }
 
-        /* Print Styling for Zebra ZD230 (50mm x 25mm, 2 per row) */
+        /* ── SUGGESTION PILLS ── */
+        .pills { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
+        .pill {
+            padding: 0.3rem 0.65rem;
+            border-radius: 980px; border: none;
+            background: var(--blue-light); color: var(--blue);
+            font-size: 0.78rem; font-weight: 600; cursor: pointer;
+            transition: 0.15s; font-family: var(--font);
+        }
+        .pill:hover { background: #d0e8ff; }
+
+        /* ── AUTOCOMPLETE ── */
+        .ac-wrap { position: relative; }
+        .ac-list {
+            position: absolute; z-index: 400; width: 100%;
+            background: #fff; border: 1px solid var(--sep);
+            border-radius: 10px; box-shadow: 0 8px 28px rgba(0,0,0,0.1);
+            max-height: 180px; overflow-y: auto; display: none; top: calc(100% + 4px);
+        }
+        .ac-item {
+            padding: 0.6rem 0.85rem; cursor: pointer;
+            font-size: 0.88rem; color: var(--label);
+            border-bottom: 1px solid var(--sep2);
+        }
+        .ac-item:hover { background: var(--sep2); }
+        .ac-item:last-child { border-bottom: none; }
+
+        /* ── STICKER PREVIEW ── */
+        .preview-wrap { display: flex; align-items: center; justify-content: center; padding: 0.75rem 0; }
+        .sticker-preview {
+            width: 220px; height: 110px;
+            background: #fff;
+            border: 2px dashed #c0cfe8;
+            border-radius: 6px;
+            padding: 10px 12px;
+            font-family: Arial, sans-serif;
+            display: flex; flex-direction: column; justify-content: center;
+            box-shadow: 0 2px 12px rgba(0,122,255,0.08);
+        }
+        .sticker-preview .sp-name {
+            font-size: 11px; font-weight: 800; line-height: 1.1;
+            text-transform: uppercase; margin-bottom: 6px; color: #111;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        }
+        .sticker-preview .sp-date { font-size: 9px; font-weight: 700; line-height: 1.4; color: #222; }
+
+        /* ── PRINT BUTTON ── */
+        .print-btn {
+            width: 100%; padding: 0.85rem;
+            background: var(--blue); color: #fff;
+            border: none; border-radius: 12px;
+            font-family: var(--font); font-size: 0.95rem; font-weight: 700;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            gap: 0.5rem; box-shadow: 0 4px 16px rgba(0,122,255,0.3);
+            transition: 0.2s;
+        }
+        .print-btn:hover { background: var(--blue-dark); transform: translateY(-1px); }
+        .print-btn:active { transform: translateY(0); }
+
+        /* ── DECODER PANEL ── */
+        .decoder-input-row { display: flex; gap: 0.5rem; }
+        .decoder-input { flex: 1; padding: 0.6rem 0.8rem; border: 1.5px solid var(--sep); border-radius: var(--radius-sm); font-size: 1rem; font-family: var(--font); outline: none; transition: border-color 0.18s; letter-spacing: 0.08em; font-weight: 600; }
+        .decoder-input:focus { border-color: var(--blue); }
+        .decode-btn {
+            padding: 0.6rem 1rem; background: var(--blue); color: #fff;
+            border: none; border-radius: var(--radius-sm); font-family: var(--font);
+            font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: 0.18s;
+        }
+        .decode-btn:hover { background: var(--blue-dark); }
+
+        .decode-result {
+            background: var(--green-light); border-radius: 10px;
+            padding: 0.85rem; display: none;
+        }
+        .decode-result.show { display: block; }
+        .decode-result-label { font-size: 0.72rem; color: var(--secondary); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 0.2rem; }
+        .decode-result-date { font-size: 1.3rem; font-weight: 800; color: var(--label); letter-spacing: -0.02em; }
+        .apply-btn {
+            width: 100%; margin-top: 0.6rem; padding: 0.55rem;
+            background: var(--green); color: #fff;
+            border: none; border-radius: 8px; font-family: var(--font);
+            font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: 0.18s;
+            display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+        }
+        .apply-btn:hover { background: #29a648; }
+
+        .decode-error { display: none; color: #ff3b30; font-size: 0.82rem; font-weight: 600; text-align: center; padding: 0.5rem 0; }
+        .decode-error.show { display: block; }
+
+        .info-box {
+            background: var(--blue-light); border-radius: 10px;
+            padding: 0.85rem; font-size: 0.8rem; color: var(--secondary); line-height: 1.5;
+        }
+        .info-box strong { color: var(--blue); }
+
+        .qty-row { display: flex; align-items: center; gap: 0.75rem; }
+        .qty-btn {
+            width: 36px; height: 36px; border: none;
+            background: var(--sep2); border-radius: 50%;
+            font-size: 1.2rem; font-weight: 700; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--blue); transition: 0.15s; flex-shrink: 0;
+        }
+        .qty-btn:hover { background: var(--blue-light); }
+        .qty-input {
+            width: 64px; text-align: center;
+            border: 1.5px solid var(--sep); border-radius: var(--radius-sm);
+            padding: 0.45rem; font-size: 1.1rem; font-weight: 700;
+            font-family: var(--font); outline: none;
+        }
+        .qty-input:focus { border-color: var(--blue); }
+
+        /* ── @MEDIA PRINT ── */
         @media print {
-            body * {
-                visibility: hidden;
-            }
-            #print-container, #print-container * {
-                visibility: visible;
-            }
+            body * { visibility: hidden; }
+            #print-container, #print-container * { visibility: visible; }
             #print-container {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100mm;
-                margin: 0;
-                padding: 0;
-                display: flex;
-                flex-wrap: wrap;
-                align-content: flex-start;
+                position: absolute; left: 0; top: 0;
+                width: 100mm; margin: 0; padding: 0;
+                display: flex; flex-wrap: wrap; align-content: flex-start;
             }
             .print-label {
-                width: 50mm;
-                height: 25mm;
-                box-sizing: border-box;
-                padding: 2mm 3mm;
-                overflow: hidden;
-                font-family: Arial, sans-serif;
-                color: #000;
-                background: #fff;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
+                width: 50mm; height: 25mm;
+                box-sizing: border-box; padding: 2mm 3mm; overflow: hidden;
+                font-family: Arial, sans-serif; color: #000; background: #fff;
+                display: flex; flex-direction: column; justify-content: center;
                 page-break-inside: avoid;
             }
-            .print-product {
-                font-weight: 700;
-                font-size: 9pt;
-                line-height: 1;
-                margin-bottom: 2mm;
-                text-transform: uppercase;
-                max-height: 18pt;
-                overflow: hidden;
-            }
-            .print-date {
-                font-size: 7.5pt;
-                line-height: 1.1;
-                font-weight: 600;
-            }
-            @page {
-                size: 100mm 25mm;
-                margin: 0;
-            }
+            .print-product { font-weight: 700; font-size: 9pt; line-height: 1; margin-bottom: 2mm; text-transform: uppercase; max-height: 18pt; overflow: hidden; }
+            .print-date { font-size: 7.5pt; line-height: 1.1; font-weight: 600; }
+            @page { size: 100mm 25mm; margin: 0; }
         }
     </style>
 </head>
 <body>
 
-<div class="ios-wrap">
-    <div class="d-flex align-items-center justify-content-between mb-4">
-        <div>
-            <h1 class="ios-page-title">
-                <div class="icon-badge"><i class="fa-solid fa-tags"></i></div>
-                Label Printing
-            </h1>
-            <p class="text-muted mb-0">Generate optimized stickers for Zebra ZD230</p>
-        </div>
-        <a href="../" class="ios-btn" style="background: var(--ios-gray-5); color: var(--ios-label);">
-            <i class="fa-solid fa-house"></i> Portal Home
-        </a>
+<!-- Top Navigation -->
+<nav class="topnav">
+    <div class="topnav-icon"><i class="fa-solid fa-tags"></i></div>
+    <div>
+        <div class="topnav-title">Label Printing</div>
     </div>
+    <div class="topnav-sub">Tiny Togs</div>
+    <div class="topnav-spacer"></div>
+    <a href="../" class="nav-btn nav-btn-ghost">
+        <i class="fa-solid fa-house"></i> Portal
+    </a>
+    <button class="nav-btn nav-btn-blue" id="topPrintBtn">
+        <i class="fa-solid fa-print"></i> Print Labels
+    </button>
+</nav>
 
-    <div class="row">
-        <!-- Left Panel: Form -->
-        <div class="col-lg-8 mb-4">
-            <div class="card">
-                <div class="card-body p-4">
-                    <form id="printForm">
-                        
-                        <div class="mb-3 position-relative">
-                            <label class="form-label fw-bold">Product Name</label>
-                            <input type="text" class="form-control" id="productName" required autocomplete="off" placeholder="e.g. Aveeno Daily Moisturizing Lotion">
-                            <div id="autocompleteList" class="autocomplete-list"></div>
-                        </div>
+<!-- Main Dashboard -->
+<div class="dashboard">
 
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">Date of Manufacture</label>
-                                <div class="d-flex gap-2">
-                                    <div class="date-dropdown">
-                                        <div class="date-display" id="mfdYearDisp" data-type="year" data-prefix="mfd">YYYY</div>
-                                        <div class="date-grid-popup"><div class="grid-container grid-years" id="mfdYearGrid"></div></div>
-                                    </div>
-                                    <div class="date-dropdown">
-                                        <div class="date-display" id="mfdMonthDisp" data-type="month" data-prefix="mfd">MM</div>
-                                        <div class="date-grid-popup"><div class="grid-container grid-months" id="mfdMonthGrid"></div></div>
-                                    </div>
-                                    <div class="date-dropdown">
-                                        <div class="date-display" id="mfdDayDisp" data-type="day" data-prefix="mfd">DD</div>
-                                        <div class="date-grid-popup"><div class="grid-container grid-days" id="mfdDayGrid"></div></div>
-                                    </div>
-                                </div>
-                                <input type="hidden" id="mfdDate" required>
-                                <input type="hidden" id="mfdYearVal">
-                                <input type="hidden" id="mfdMonthVal">
-                                <input type="hidden" id="mfdDayVal">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">Date of Expiry</label>
-                                <div class="d-flex gap-2">
-                                    <div class="date-dropdown">
-                                        <div class="date-display" id="expYearDisp" data-type="year" data-prefix="exp">YYYY</div>
-                                        <div class="date-grid-popup"><div class="grid-container grid-years" id="expYearGrid"></div></div>
-                                    </div>
-                                    <div class="date-dropdown">
-                                        <div class="date-display" id="expMonthDisp" data-type="month" data-prefix="exp">MM</div>
-                                        <div class="date-grid-popup"><div class="grid-container grid-months" id="expMonthGrid"></div></div>
-                                    </div>
-                                    <div class="date-dropdown">
-                                        <div class="date-display" id="expDayDisp" data-type="day" data-prefix="exp">DD</div>
-                                        <div class="date-grid-popup"><div class="grid-container grid-days" id="expDayGrid"></div></div>
-                                    </div>
-                                </div>
-                                <input type="hidden" id="expDate" required>
-                                <input type="hidden" id="expYearVal">
-                                <input type="hidden" id="expMonthVal">
-                                <input type="hidden" id="expDayVal">
-                                <div id="expSuggestions" class="mt-1">
-                                    <!-- Suggestions will be injected here -->
-                                </div>
-                            </div>
-                        </div>
+    <!-- LEFT: Print Form -->
+    <div class="left-panel">
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Usable Period After Opening</label>
-                            <input type="text" class="form-control" id="usablePeriod" required placeholder="e.g. 12 Months">
-                            <div id="useSuggestions" class="mt-1">
-                                <button type="button" class="suggestion-btn use-btn" data-val="6 Months">6 Months</button>
-                                <button type="button" class="suggestion-btn use-btn" data-val="12 Months">12 Months</button>
-                                <button type="button" class="suggestion-btn use-btn" data-val="24 Months">24 Months</button>
-                            </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Number of Stickers</label>
-                            <input type="number" class="form-control" id="stickerQty" min="1" required style="max-width: 200px;">
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Live Label Preview (50mm × 25mm)</label>
-                            <div class="preview-box">
-                                <div class="preview-product" id="prevTitle">PRODUCT NAME</div>
-                                <div class="preview-date" id="prevMfd">MFD: DD/MM/YYYY</div>
-                                <div class="preview-date" id="prevExp">EXP: DD/MM/YYYY</div>
-                                <div class="preview-date" id="prevUse">USE WITHIN: -</div>
-                            </div>
-                        </div>
-
-                        <button type="submit" class="ios-btn ios-btn-primary w-100 py-3" style="font-size: 1.1rem; justify-content: center;">
-                            <i class="fa-solid fa-print"></i> PRINT LABELS
-                        </button>
-
-                    </form>
+        <!-- Product Name -->
+        <div class="section-card">
+            <div class="section-card-header">Product</div>
+            <div class="section-card-body">
+                <label class="field-label">Product Name</label>
+                <div class="ac-wrap">
+                    <input type="text" class="field-input" id="productName" autocomplete="off" placeholder="e.g. Aveeno Daily Moisturizing Lotion">
+                    <div id="autocompleteList" class="ac-list"></div>
                 </div>
             </div>
         </div>
 
-        <!-- Right Panel: Native Batch Code Decoder -->
-        <div class="col-lg-4">
-            <div class="card" style="background-color: #f8f9fa; border-radius: var(--ios-radius); border: none; box-shadow: var(--ios-shadow-sm);">
-                <div class="card-body p-4">
-                    <h5 class="fw-bold mb-3 text-center"><i class="fa-solid fa-wand-magic-sparkles text-primary"></i> Batch Code Decoder</h5>
-                    <p class="text-muted small mb-4 text-center">Instantly decode J&J / Aveeno batch codes without leaving this page! (Supports standard DDDY, DDDYY, and YYDDD formats).</p>
-                    
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small">Enter Batch / Lot Code</label>
-                        <div class="input-group">
-                            <input type="text" id="batchCodeInput" class="form-control" placeholder="e.g., 1234V or 23123">
-                            <button class="ios-btn ios-btn-primary" type="button" id="decodeBtn" style="border-radius: 0 12px 12px 0;">Decode</button>
+        <!-- Dates -->
+        <div class="section-card">
+            <div class="section-card-header">Dates</div>
+            <div class="section-card-body">
+                <div class="date-row">
+                    <!-- MFD -->
+                    <div>
+                        <label class="field-label">Manufacture Date (MFD)</label>
+                        <div class="date-dropdowns">
+                            <div class="date-dropdown">
+                                <div class="date-display" id="mfdYearDisp" data-type="year" data-prefix="mfd">
+                                    <span>YYYY</span><i class="fa-solid fa-chevron-down dd-arrow"></i>
+                                </div>
+                                <div class="date-grid-popup"><div class="grid-container grid-years" id="mfdYearGrid"></div></div>
+                            </div>
+                            <div class="date-dropdown">
+                                <div class="date-display" id="mfdMonthDisp" data-type="month" data-prefix="mfd">
+                                    <span>MM</span><i class="fa-solid fa-chevron-down dd-arrow"></i>
+                                </div>
+                                <div class="date-grid-popup"><div class="grid-container grid-months" id="mfdMonthGrid"></div></div>
+                            </div>
+                            <div class="date-dropdown">
+                                <div class="date-display" id="mfdDayDisp" data-type="day" data-prefix="mfd">
+                                    <span>DD</span><i class="fa-solid fa-chevron-down dd-arrow"></i>
+                                </div>
+                                <div class="date-grid-popup"><div class="grid-container grid-days" id="mfdDayGrid"></div></div>
+                            </div>
                         </div>
+                        <input type="hidden" id="mfdDate">
+                        <input type="hidden" id="mfdYearVal">
+                        <input type="hidden" id="mfdMonthVal">
+                        <input type="hidden" id="mfdDayVal">
                     </div>
-
-                    <div id="decodeResult" class="d-none mt-4 p-3 rounded" style="background: #fff; border: 1px solid var(--ios-gray-5);">
-                        <div class="text-center mb-2">
-                            <span class="badge bg-success mb-2">Code Decoded Successfully</span>
-                            <div style="font-size: 0.85rem; color: var(--ios-secondary-label);">Manufacture Date:</div>
-                            <div id="decodedMfdText" class="fw-bold fs-5 text-dark mt-1"></div>
+                    <!-- EXP -->
+                    <div>
+                        <label class="field-label">Expiry Date (EXP)</label>
+                        <div class="date-dropdowns">
+                            <div class="date-dropdown">
+                                <div class="date-display" id="expYearDisp" data-type="year" data-prefix="exp">
+                                    <span>YYYY</span><i class="fa-solid fa-chevron-down dd-arrow"></i>
+                                </div>
+                                <div class="date-grid-popup"><div class="grid-container grid-years" id="expYearGrid"></div></div>
+                            </div>
+                            <div class="date-dropdown">
+                                <div class="date-display" id="expMonthDisp" data-type="month" data-prefix="exp">
+                                    <span>MM</span><i class="fa-solid fa-chevron-down dd-arrow"></i>
+                                </div>
+                                <div class="date-grid-popup"><div class="grid-container grid-months" id="expMonthGrid"></div></div>
+                            </div>
+                            <div class="date-dropdown">
+                                <div class="date-display" id="expDayDisp" data-type="day" data-prefix="exp">
+                                    <span>DD</span><i class="fa-solid fa-chevron-down dd-arrow"></i>
+                                </div>
+                                <div class="date-grid-popup"><div class="grid-container grid-days" id="expDayGrid"></div></div>
+                            </div>
                         </div>
-                        <button type="button" id="applyMfdBtn" class="ios-btn w-100 mt-3" style="background: var(--ios-gray-5); color: var(--ios-blue); justify-content: center; font-size: 0.9rem;">
-                            <i class="fa-solid fa-arrow-left"></i> Use this MFD
-                        </button>
-                    </div>
-
-                    <div id="decodeError" class="d-none mt-3 text-danger small text-center fw-bold">
-                        Could not recognize this batch code format.
-                    </div>
-
-                    <div class="mt-4 p-3 rounded" style="background: rgba(0, 122, 255, 0.1); border-left: 4px solid var(--ios-blue);">
-                        <strong class="d-block mb-1" style="color: var(--ios-blue); font-size: 0.8rem;">How it works:</strong>
-                        <p class="small text-muted mb-0" style="font-size: 0.75rem;">Aveeno uses Julian dates. A code like <strong>12324</strong> means the 123rd day of 2024. This tool calculates the exact calendar date automatically!</p>
+                        <input type="hidden" id="expDate">
+                        <input type="hidden" id="expYearVal">
+                        <input type="hidden" id="expMonthVal">
+                        <input type="hidden" id="expDayVal">
+                        <div id="expSuggestions" class="pills"></div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Usable Period -->
+        <div class="section-card">
+            <div class="section-card-header">Usable Period After Opening</div>
+            <div class="section-card-body">
+                <input type="text" class="field-input" id="usablePeriod" placeholder="e.g. 12 Months">
+                <div class="pills" id="usePills">
+                    <button class="pill use-btn" data-val="3 Months">3 Months</button>
+                    <button class="pill use-btn" data-val="6 Months">6 Months</button>
+                    <button class="pill use-btn" data-val="12 Months">12 Months</button>
+                    <button class="pill use-btn" data-val="24 Months">24 Months</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Qty + Print Preview row -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+
+            <!-- Qty -->
+            <div class="section-card">
+                <div class="section-card-header">Sticker Count</div>
+                <div class="section-card-body">
+                    <div class="qty-row">
+                        <button class="qty-btn" id="qtyMinus">−</button>
+                        <input type="number" class="qty-input" id="stickerQty" value="1" min="1">
+                        <button class="qty-btn" id="qtyPlus">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview -->
+            <div class="section-card">
+                <div class="section-card-header">Label Preview</div>
+                <div class="section-card-body p-0">
+                    <div class="preview-wrap">
+                        <div class="sticker-preview">
+                            <div class="sp-name" id="prevTitle">PRODUCT NAME</div>
+                            <div class="sp-date" id="prevMfd">MFD: DD/MM/YYYY</div>
+                            <div class="sp-date" id="prevExp">EXP: DD/MM/YYYY</div>
+                            <div class="sp-date" id="prevUse">USE WITHIN: —</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Print Button -->
+        <button class="print-btn" id="mainPrintBtn">
+            <i class="fa-solid fa-print"></i> Print Labels
+        </button>
+
     </div>
+
+    <!-- RIGHT: Batch Code Decoder -->
+    <div class="right-panel">
+        <div class="right-panel-header">
+            <i class="fa-solid fa-wand-magic-sparkles" style="color: var(--blue);"></i>
+            Batch Code Decoder
+        </div>
+        <div class="right-panel-body">
+
+            <div>
+                <label class="field-label">Enter Batch / Lot Code</label>
+                <div class="decoder-input-row">
+                    <input type="text" id="batchCodeInput" class="decoder-input" placeholder="e.g. 103192">
+                    <button class="decode-btn" id="decodeBtn"><i class="fa-solid fa-magnifying-glass"></i> Decode</button>
+                </div>
+            </div>
+
+            <div class="decode-result" id="decodeResult">
+                <div class="decode-result-label">Manufacture Date</div>
+                <div class="decode-result-date" id="decodedMfdText">—</div>
+                <button class="apply-btn" id="applyMfdBtn">
+                    <i class="fa-solid fa-arrow-left"></i> Apply as MFD
+                </button>
+            </div>
+
+            <div class="decode-error" id="decodeError">
+                ⚠ Could not recognize this batch code format.
+            </div>
+
+            <div class="info-box">
+                <strong>How it works</strong><br>
+                Aveeno uses Julian date format. For example, batch code <strong>103192</strong> means the <strong>103rd day</strong> of <strong>2019</strong>. This tool decodes DDDYY, YYDDD and DDDY formats automatically.
+            </div>
+
+            <div style="flex: 1;"></div>
+
+            <div style="background: var(--sep2); border-radius: 10px; padding: 0.85rem;">
+                <div style="font-size: 0.72rem; font-weight: 600; text-transform: uppercase; color: var(--tertiary); letter-spacing: 0.06em; margin-bottom: 0.5rem;">Quick Reference</div>
+                <div style="font-size: 0.8rem; color: var(--secondary); line-height: 1.6;">
+                    <div><strong>DDDYY:</strong> 103<strong>19</strong> → 103rd day 2019</div>
+                    <div><strong>DDDY:</strong> 103<strong>9</strong> → 103rd day 201<strong>9</strong></div>
+                    <div><strong>YYDDD:</strong> <strong>19</strong>103 → 2019, 103rd day</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
 </div>
 
-<!-- Print Container (Hidden on screen) -->
+<!-- Hidden print output -->
 <div id="print-container"></div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 $(document).ready(function() {
 
-    // ---- Custom Date Selectors Setup ----
-    const currentYearStatic = new Date().getFullYear();
-    const monthsArr = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    
-    // Generate Grids
+    // ─── DATE GRIDS SETUP ───
+    const currYear = new Date().getFullYear();
+    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
     let yearHtml = '';
-    for(let y = currentYearStatic - 10; y <= currentYearStatic + 15; y++) {
-        yearHtml += `<div class="grid-btn" data-val="${y}">${y}</div>`;
-    }
+    for (let y = currYear - 10; y <= currYear + 15; y++) yearHtml += `<div class="grid-btn" data-val="${y}">${y}</div>`;
     $('#mfdYearGrid, #expYearGrid').html(yearHtml);
 
     let monthHtml = '';
-    for(let m = 1; m <= 12; m++) {
-        let val = m.toString().padStart(2, '0');
-        monthHtml += `<div class="grid-btn" data-val="${val}">${monthsArr[m-1]}</div>`;
-    }
+    for (let m = 1; m <= 12; m++) { let v = String(m).padStart(2,'0'); monthHtml += `<div class="grid-btn" data-val="${v}">${months[m-1]}</div>`; }
     $('#mfdMonthGrid, #expMonthGrid').html(monthHtml);
 
     let dayHtml = '';
-    for(let d = 1; d <= 31; d++) {
-        let val = d.toString().padStart(2, '0');
-        dayHtml += `<div class="grid-btn" data-val="${val}">${val}</div>`;
-    }
+    for (let d = 1; d <= 31; d++) { let v = String(d).padStart(2,'0'); dayHtml += `<div class="grid-btn" data-val="${v}">${v}</div>`; }
     $('#mfdDayGrid, #expDayGrid').html(dayHtml);
 
-    // Dropdown Toggles
+    // Toggle popups
     $('.date-display').on('click', function(e) {
         e.stopPropagation();
         let popup = $(this).siblings('.date-grid-popup');
-        let isAct = popup.hasClass('active');
+        let isOpen = popup.hasClass('active');
         $('.date-grid-popup').removeClass('active');
-        if (!isAct) popup.addClass('active');
+        $('.date-display').removeClass('open');
+        if (!isOpen) { popup.addClass('active'); $(this).addClass('open'); }
     });
-
     $(document).on('click', function() {
         $('.date-grid-popup').removeClass('active');
+        $('.date-display').removeClass('open');
     });
+    $('.date-grid-popup').on('click', e => e.stopPropagation());
 
-    $('.date-grid-popup').on('click', function(e) {
-        e.stopPropagation(); // Keep popup open when clicking inside
-    });
-
-    // Selection
+    // Grid selection
     $(document).on('click', '.grid-btn', function() {
         let btn = $(this);
         let popup = btn.closest('.date-grid-popup');
@@ -489,17 +625,13 @@ $(document).ready(function() {
         let type = display.data('type');
         let val = btn.data('val');
 
-        // Update UI
         btn.siblings().removeClass('selected');
         btn.addClass('selected');
-        
-        let displayStr = val;
-        if (type === 'month') displayStr = monthsArr[parseInt(val)-1];
-        display.text(displayStr);
+        display.find('span').text(type === 'month' ? months[parseInt(val)-1] : val);
         popup.removeClass('active');
+        display.removeClass('open');
 
-        // Update Values
-        $(`#${prefix}${type.charAt(0).toUpperCase() + type.slice(1)}Val`).val(val);
+        $(`#${prefix}${type.charAt(0).toUpperCase()+type.slice(1)}Val`).val(val);
         updateHiddenDate(prefix);
     });
 
@@ -507,263 +639,202 @@ $(document).ready(function() {
         let y = $(`#${prefix}YearVal`).val();
         let m = $(`#${prefix}MonthVal`).val();
         let d = $(`#${prefix}DayVal`).val();
-        if (y && m && d) {
-            $(`#${prefix}Date`).val(`${y}-${m}-${d}`).trigger('change');
-        } else {
-            $(`#${prefix}Date`).val('').trigger('change');
-        }
+        let val = (y && m && d) ? `${y}-${m}-${d}` : '';
+        $(`#${prefix}Date`).val(val).trigger('change');
     }
 
-    function syncDropdownsToDate(prefix, dateStr) {
+    function syncToDate(prefix, dateStr) {
         if (!dateStr) {
+            $(`#${prefix}YearDisp span`).text('YYYY');
+            $(`#${prefix}MonthDisp span`).text('MM');
+            $(`#${prefix}DayDisp span`).text('DD');
             $(`#${prefix}YearVal, #${prefix}MonthVal, #${prefix}DayVal`).val('');
-            $(`#${prefix}YearDisp`).text('YYYY');
-            $(`#${prefix}MonthDisp`).text('MM');
-            $(`#${prefix}DayDisp`).text('DD');
             $(`#${prefix}YearGrid .grid-btn, #${prefix}MonthGrid .grid-btn, #${prefix}DayGrid .grid-btn`).removeClass('selected');
             return;
         }
-        let parts = dateStr.split('-');
-        if (parts.length === 3) {
-            let y = parts[0];
-            let m = parts[1];
-            let d = parts[2];
-
-            $(`#${prefix}YearVal`).val(y);
-            $(`#${prefix}MonthVal`).val(m);
-            $(`#${prefix}DayVal`).val(d);
-
-            $(`#${prefix}YearDisp`).text(y);
-            $(`#${prefix}MonthDisp`).text(monthsArr[parseInt(m)-1]);
-            $(`#${prefix}DayDisp`).text(d);
-
-            $(`#${prefix}YearGrid .grid-btn`).removeClass('selected').filter(`[data-val="${y}"]`).addClass('selected');
-            $(`#${prefix}MonthGrid .grid-btn`).removeClass('selected').filter(`[data-val="${m}"]`).addClass('selected');
-            $(`#${prefix}DayGrid .grid-btn`).removeClass('selected').filter(`[data-val="${d}"]`).addClass('selected');
-        }
+        let [y, m, d] = dateStr.split('-');
+        $(`#${prefix}YearVal`).val(y); $(`#${prefix}MonthVal`).val(m); $(`#${prefix}DayVal`).val(d);
+        $(`#${prefix}YearDisp span`).text(y);
+        $(`#${prefix}MonthDisp span`).text(months[parseInt(m)-1]);
+        $(`#${prefix}DayDisp span`).text(d);
+        $(`#${prefix}YearGrid .grid-btn`).removeClass('selected').filter(`[data-val="${y}"]`).addClass('selected');
+        $(`#${prefix}MonthGrid .grid-btn`).removeClass('selected').filter(`[data-val="${m}"]`).addClass('selected');
+        $(`#${prefix}DayGrid .grid-btn`).removeClass('selected').filter(`[data-val="${d}"]`).addClass('selected');
     }
 
-    // ---- Live Preview Update ----
+    // ─── LIVE PREVIEW ───
     function updatePreview() {
         $('#prevTitle').text($('#productName').val() || 'PRODUCT NAME');
-        
         let mfd = $('#mfdDate').val();
-        $('#prevMfd').text('MFD: ' + (mfd ? formatDate(mfd) : 'DD/MM/YYYY'));
-        
+        $('#prevMfd').text('MFD: ' + (mfd ? fmtDate(mfd) : 'DD/MM/YYYY'));
         let exp = $('#expDate').val();
-        $('#prevExp').text('EXP: ' + (exp ? formatDate(exp) : 'DD/MM/YYYY'));
-        
-        $('#prevUse').text('USE WITHIN: ' + ($('#usablePeriod').val() || '-'));
+        $('#prevExp').text('EXP: ' + (exp ? fmtDate(exp) : 'DD/MM/YYYY'));
+        $('#prevUse').text('USE WITHIN: ' + ($('#usablePeriod').val() || '—'));
+    }
+    $('#productName, #usablePeriod').on('input', updatePreview);
+    $('#mfdDate, #expDate').on('change', updatePreview);
+
+    function fmtDate(s) {
+        let p = s.split('-');
+        return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : s;
     }
 
-    $('#printForm input').on('input change', updatePreview);
-
-    function formatDate(dateString) {
-        if (!dateString) return '';
-        const parts = dateString.split('-');
-        if (parts.length === 3) {
-            return `${parts[2]}/${parts[1]}/${parts[0]}`;
-        }
-        return dateString;
-    }
-
-    // ---- Date Logic ----
+    // ─── MFD → EXP SUGGESTIONS ───
     $('#mfdDate').on('change', function() {
-        const mfd = $(this).val();
-        if (mfd) {
-            const date = new Date(mfd);
-            $('#expSuggestions').empty();
-            
-            for(let i=1; i<=3; i++) {
-                const nextYear = new Date(date);
-                nextYear.setFullYear(date.getFullYear() + i);
-                const ds = nextYear.toISOString().split('T')[0];
-                $('#expSuggestions').append(`<button type="button" class="suggestion-btn exp-btn" data-date="${ds}">+${i} Year${i>1?'s':''}</button>`);
-            }
+        let mfd = $(this).val();
+        $('#expSuggestions').empty();
+        if (!mfd) return;
+        let date = new Date(mfd);
+        for (let i = 1; i <= 3; i++) {
+            let ny = new Date(date);
+            ny.setFullYear(date.getFullYear() + i);
+            let ds = ny.getFullYear() + '-' + String(ny.getMonth()+1).padStart(2,'0') + '-' + String(ny.getDate()).padStart(2,'0');
+            $('#expSuggestions').append(`<button class="pill exp-btn" data-date="${ds}">+${i}Yr</button>`);
         }
     });
-
     $(document).on('click', '.exp-btn', function() {
         let d = $(this).data('date');
-        syncDropdownsToDate('exp', d);
+        syncToDate('exp', d);
         $('#expDate').val(d).trigger('change');
     });
 
-    $('.use-btn').on('click', function() {
+    // ─── USE PERIOD PILLS ───
+    $(document).on('click', '.use-btn', function() {
         $('#usablePeriod').val($(this).data('val')).trigger('input');
     });
 
-    // ---- Autocomplete ----
-    let timeout = null;
+    // ─── AUTOCOMPLETE ───
+    let acTimer;
     $('#productName').on('keyup', function() {
-        clearTimeout(timeout);
-        const val = $(this).val();
-        if (val.length < 2) {
-            $('#autocompleteList').hide();
-            return;
-        }
-        timeout = setTimeout(() => {
+        clearTimeout(acTimer);
+        let val = $(this).val();
+        if (val.length < 2) { $('#autocompleteList').hide(); return; }
+        acTimer = setTimeout(() => {
             $.getJSON('index.php?action=search_product', { term: val }, function(data) {
                 $('#autocompleteList').empty();
-                if(data.length > 0) {
-                    data.forEach(item => {
-                        $('#autocompleteList').append(`<div class="autocomplete-item">${item}</div>`);
-                    });
+                if (data.length) {
+                    data.forEach(item => $('#autocompleteList').append(`<div class="ac-item">${item}</div>`));
                     $('#autocompleteList').show();
-                } else {
-                    $('#autocompleteList').hide();
-                }
+                } else { $('#autocompleteList').hide(); }
             });
-        }, 300);
+        }, 280);
     });
-
-    $(document).on('click', '.autocomplete-item', function() {
+    $(document).on('click', '.ac-item', function() {
         $('#productName').val($(this).text()).trigger('input');
         $('#autocompleteList').hide();
     });
+    $(document).on('click', e => { if (!$(e.target).closest('.ac-wrap').length) $('#autocompleteList').hide(); });
 
-    // Hide autocomplete when clicking outside
-    $(document).on('click', function(e) {
-        if (!$(e.target).closest('.position-relative').length) {
-            $('#autocompleteList').hide();
-        }
+    // ─── QTY STEPPER ───
+    $('#qtyMinus').on('click', function() {
+        let v = parseInt($('#stickerQty').val()) || 1;
+        if (v > 1) $('#stickerQty').val(v - 1);
+    });
+    $('#qtyPlus').on('click', function() {
+        let v = parseInt($('#stickerQty').val()) || 1;
+        $('#stickerQty').val(v + 1);
     });
 
-    // ---- Form Submit (Printing) ----
-    $('#printForm').on('submit', function(e) {
-        e.preventDefault();
-        
-        const mfd = $('#mfdDate').val();
-        const exp = $('#expDate').val();
-        
-        if (exp < mfd) {
-            alert('Expiry Date cannot be earlier than Manufacture Date.');
-            return;
-        }
-        
-        const name = $('#productName').val();
-        const qty = parseInt($('#stickerQty').val());
-        const use = $('#usablePeriod').val();
-        
-        // Save product name via AJAX
+    // ─── PRINT ───
+    function doPrint() {
+        let mfd = $('#mfdDate').val();
+        let exp = $('#expDate').val();
+        let name = $('#productName').val().trim();
+        let qty = parseInt($('#stickerQty').val()) || 1;
+        let use = $('#usablePeriod').val();
+
+        if (!name) { alert('Please enter a product name.'); return; }
+        if (!mfd)  { alert('Please select a Manufacture Date.'); return; }
+        if (!exp)  { alert('Please select an Expiry Date.'); return; }
+        if (!use)  { alert('Please enter a usable period.'); return; }
+        if (exp < mfd) { alert('Expiry Date cannot be earlier than Manufacture Date.'); return; }
+
         $.post('index.php', { action: 'save_product', product_name: name });
 
-        // Generate Print HTML
-        const container = $('#print-container');
-        container.empty();
-        
+        let container = $('#print-container').empty();
         for (let i = 0; i < qty; i++) {
-            const label = `
+            container.append(`
                 <div class="print-label">
                     <div class="print-product">${name}</div>
-                    <div class="print-date">MFD: ${formatDate(mfd)}</div>
-                    <div class="print-date">EXP: ${formatDate(exp)}</div>
+                    <div class="print-date">MFD: ${fmtDate(mfd)}</div>
+                    <div class="print-date">EXP: ${fmtDate(exp)}</div>
                     <div class="print-date">USE WITHIN: ${use}</div>
-                </div>
-            `;
-            container.append(label);
+                </div>`);
         }
+        setTimeout(() => window.print(), 80);
+    }
+    $('#mainPrintBtn, #topPrintBtn').on('click', doPrint);
 
-        // Trigger browser print
-        setTimeout(() => {
-            window.print();
-        }, 100);
-    });
-
-    // ---- Native Batch Code Decoder Logic ----
+    // ─── BATCH CODE DECODER ───
     $('#decodeBtn').on('click', function() {
         let code = $('#batchCodeInput').val().toUpperCase();
-        let digits = code.replace(/\D/g, ''); // Extract only numbers
-        let mfdDate = null;
-        let currentYear = new Date().getFullYear();
+        let digits = code.replace(/\D/g, '');
+        let currY = new Date().getFullYear();
         let candidates = [];
 
-        $('#decodeError').addClass('d-none');
-        $('#decodeResult').addClass('d-none');
+        $('#decodeError').removeClass('show');
+        $('#decodeResult').removeClass('show');
 
         if (digits.length >= 4) {
             let ddd1 = parseInt(digits.substring(0, 3));
-            let yy1_2 = digits.length >= 5 ? parseInt(digits.substring(3, 5)) : null;
-            let y1_1 = parseInt(digits.substring(3, 4));
-            
-            let yy2 = digits.length >= 5 ? parseInt(digits.substring(0, 2)) : null;
+            let yy12 = digits.length >= 5 ? parseInt(digits.substring(3, 5)) : null;
+            let y11  = parseInt(digits.substring(3, 4));
+            let yy2  = digits.length >= 5 ? parseInt(digits.substring(0, 2)) : null;
             let ddd2 = digits.length >= 5 ? parseInt(digits.substring(2, 5)) : null;
 
-            // 1. Try DDDYY format (e.g. 103192 -> 103rd day, 2019)
-            if (ddd1 >= 1 && ddd1 <= 366 && yy1_2 !== null) {
-                let d = new Date(2000 + yy1_2, 0);
-                d.setDate(ddd1);
-                candidates.push({ date: d, format: 'DDDYY' });
+            if (ddd1 >= 1 && ddd1 <= 366 && yy12 !== null) {
+                let d = new Date(2000 + yy12, 0); d.setDate(ddd1);
+                candidates.push({ date: d, fmt: 'DDDYY' });
             }
-            
-            // 2. Try YYDDD format (e.g. 23103 -> 2023, 103rd day)
             if (ddd2 >= 1 && ddd2 <= 366 && yy2 !== null) {
-                let d = new Date(2000 + yy2, 0);
-                d.setDate(ddd2);
-                candidates.push({ date: d, format: 'YYDDD' });
+                let d = new Date(2000 + yy2, 0); d.setDate(ddd2);
+                candidates.push({ date: d, fmt: 'YYDDD' });
             }
-
-            // 3. Try DDDY format (e.g. 1039 -> 103rd day, 2019/2029)
             if (ddd1 >= 1 && ddd1 <= 366) {
-                let potentialYear = Math.floor(currentYear / 10) * 10 + y1_1;
-                // If it's more than 1 year in the future, it's probably from the previous decade
-                if (potentialYear > currentYear + 1) potentialYear -= 10;
-                let d = new Date(potentialYear, 0);
-                d.setDate(ddd1);
-                candidates.push({ date: d, format: 'DDDY' });
+                let py = Math.floor(currY / 10) * 10 + y11;
+                if (py > currY + 1) py -= 10;
+                let d = new Date(py, 0); d.setDate(ddd1);
+                candidates.push({ date: d, fmt: 'DDDY' });
             }
         }
 
-        // Pick the most plausible date
-        if (candidates.length > 0) {
-            let best = null;
-            let minScore = 9999;
-            
+        let mfdDate = null;
+        if (candidates.length) {
+            let best = null, minScore = 9999;
             candidates.forEach(c => {
-                let yDiff = Math.abs(c.date.getFullYear() - currentYear);
-                let score = yDiff;
-
-                // Heavily penalize future dates (unless they are within 1 year)
-                if (c.date.getFullYear() > currentYear + 1) score += 20;
-
-                // Penalize DDDY format if the user provided 5 or more digits
-                // (Because DDDYY or YYDDD utilizes more of the provided information)
-                if (c.format === 'DDDY' && digits.length >= 5) {
-                    score += 50;
-                }
-                
-                // Slight tie-breaker: DDDYY is more common than YYDDD for Aveeno
-                if (c.format === 'YYDDD') {
-                    score += 1;
-                }
-                
-                if (score < minScore) {
-                    minScore = score;
-                    best = c.date;
-                }
+                let score = Math.abs(c.date.getFullYear() - currY);
+                if (c.date.getFullYear() > currY + 1) score += 20;
+                if (c.fmt === 'DDDY' && digits.length >= 5) score += 50;
+                if (c.fmt === 'YYDDD') score += 1;
+                if (score < minScore) { minScore = score; best = c.date; }
             });
             mfdDate = best;
         }
 
         if (mfdDate && !isNaN(mfdDate.getTime())) {
-            let isoDate = mfdDate.getFullYear() + '-' + String(mfdDate.getMonth() + 1).padStart(2, '0') + '-' + String(mfdDate.getDate()).padStart(2, '0');
-            let displayDate = mfdDate.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
-            
-            $('#decodedMfdText').text(displayDate);
-            $('#applyMfdBtn').data('date', isoDate);
-            $('#decodeResult').removeClass('d-none');
+            let iso = mfdDate.getFullYear() + '-' + String(mfdDate.getMonth()+1).padStart(2,'0') + '-' + String(mfdDate.getDate()).padStart(2,'0');
+            let display = mfdDate.toLocaleDateString(undefined, { year:'numeric', month:'long', day:'numeric' });
+            $('#decodedMfdText').text(display);
+            $('#applyMfdBtn').data('date', iso);
+            $('#decodeResult').addClass('show');
         } else {
-            $('#decodeError').removeClass('d-none');
+            $('#decodeError').addClass('show');
         }
     });
 
-    $('#applyMfdBtn').on('click', function() {
-        let isoDate = $(this).data('date');
-        syncDropdownsToDate('mfd', isoDate);
-        $('#mfdDate').val(isoDate).trigger('change');
-        $('#batchCodeInput').val('');
-        $('#decodeResult').addClass('d-none');
+    // Allow Enter key to trigger decode
+    $('#batchCodeInput').on('keydown', function(e) {
+        if (e.key === 'Enter') $('#decodeBtn').click();
     });
+
+    $('#applyMfdBtn').on('click', function() {
+        let iso = $(this).data('date');
+        syncToDate('mfd', iso);
+        $('#mfdDate').val(iso).trigger('change');
+        $('#batchCodeInput').val('');
+        $('#decodeResult').removeClass('show');
+    });
+
 });
 </script>
 </body>
