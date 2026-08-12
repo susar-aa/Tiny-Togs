@@ -300,6 +300,8 @@ if (isset($_REQUEST['action'])) {
         .qty-input::-webkit-outer-spin-button, .qty-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         .btn-print-large { width: 100%; padding: 0.75rem; font-size: 0.95rem; display: flex; justify-content: center; height: 40px; align-items: center; }
 
+        #print-container { display: none; }
+
         @media print {
             body * { visibility: hidden; }
             #print-container, #print-container * { visibility: visible; }
