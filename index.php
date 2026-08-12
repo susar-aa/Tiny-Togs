@@ -23,7 +23,7 @@
 
         <div class="cards-wrapper">
             <!-- Master Data Card -->
-            <a href="Tiny%20Togs%20Master%20Data/" class="card fade-in delay-2">
+            <a href="Tiny%20Togs%20Master%20Data/" target="_blank" class="card fade-in delay-2">
                 <div class="card-icon">
                     <i class="fa-solid fa-database"></i>
                 </div>
@@ -36,7 +36,7 @@
             </a>
 
             <!-- Roster Card -->
-            <a href="Tiny%20Togs%20Roaster/" class="card fade-in delay-3">
+            <a href="Tiny%20Togs%20Roaster/" target="_blank" class="card fade-in delay-3">
                 <div class="card-icon">
                     <i class="fa-solid fa-calendar-days"></i>
                 </div>
