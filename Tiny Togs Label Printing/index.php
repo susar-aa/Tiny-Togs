@@ -297,12 +297,22 @@ if (isset($_REQUEST['action'])) {
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">Date of Manufacture</label>
-                                <input type="date" class="form-control" id="mfdDate" required>
+                                <div class="d-flex gap-1">
+                                    <select class="form-select p-2" id="mfdYear" required><option value="">YYYY</option></select>
+                                    <select class="form-select p-2" id="mfdMonth" required><option value="">MM</option></select>
+                                    <select class="form-select p-2" id="mfdDay" required><option value="">DD</option></select>
+                                </div>
+                                <input type="hidden" id="mfdDate" required>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">Date of Expiry</label>
-                                <input type="date" class="form-control" id="expDate" required>
-                                <div id="expSuggestions">
+                                <div class="d-flex gap-1">
+                                    <select class="form-select p-2" id="expYear" required><option value="">YYYY</option></select>
+                                    <select class="form-select p-2" id="expMonth" required><option value="">MM</option></select>
+                                    <select class="form-select p-2" id="expDay" required><option value="">DD</option></select>
+                                </div>
+                                <input type="hidden" id="expDate" required>
+                                <div id="expSuggestions" class="mt-1">
                                     <!-- Suggestions will be injected here -->
                                 </div>
                             </div>
@@ -388,6 +398,58 @@ if (isset($_REQUEST['action'])) {
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 $(document).ready(function() {
+
+    // ---- Date Selectors Setup ----
+    const currentYearStatic = new Date().getFullYear();
+    const monthsArr = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    
+    let yearOptions = '<option value="">YYYY</option>';
+    for(let y = currentYearStatic - 10; y <= currentYearStatic + 15; y++) {
+        yearOptions += `<option value="${y}">${y}</option>`;
+    }
+    $('#mfdYear, #expYear').html(yearOptions);
+
+    let monthOptions = '<option value="">MM</option>';
+    for(let m = 1; m <= 12; m++) {
+        let val = m.toString().padStart(2, '0');
+        monthOptions += `<option value="${val}">${monthsArr[m-1]}</option>`;
+    }
+    $('#mfdMonth, #expMonth').html(monthOptions);
+
+    let dayOptions = '<option value="">DD</option>';
+    for(let d = 1; d <= 31; d++) {
+        let val = d.toString().padStart(2, '0');
+        dayOptions += `<option value="${val}">${val}</option>`;
+    }
+    $('#mfdDay, #expDay').html(dayOptions);
+
+    function updateHiddenDate(prefix) {
+        let y = $(`#${prefix}Year`).val();
+        let m = $(`#${prefix}Month`).val();
+        let d = $(`#${prefix}Day`).val();
+        if (y && m && d) {
+            $(`#${prefix}Date`).val(`${y}-${m}-${d}`).trigger('change');
+        } else {
+            $(`#${prefix}Date`).val('').trigger('change');
+        }
+    }
+
+    function syncDropdownsToDate(prefix, dateStr) {
+        if (!dateStr) {
+            $(`#${prefix}Year, #${prefix}Month, #${prefix}Day`).val('');
+            return;
+        }
+        let parts = dateStr.split('-');
+        if (parts.length === 3) {
+            $(`#${prefix}Year`).val(parts[0]);
+            $(`#${prefix}Month`).val(parts[1]);
+            $(`#${prefix}Day`).val(parts[2]);
+        }
+    }
+
+    $('#mfdYear, #mfdMonth, #mfdDay').on('change', () => updateHiddenDate('mfd'));
+    $('#expYear, #expMonth, #expDay').on('change', () => updateHiddenDate('exp'));
+
     // ---- Live Preview Update ----
     function updatePreview() {
         $('#prevTitle').text($('#productName').val() || 'PRODUCT NAME');
@@ -429,7 +491,9 @@ $(document).ready(function() {
     });
 
     $(document).on('click', '.exp-btn', function() {
-        $('#expDate').val($(this).data('date')).trigger('change');
+        let d = $(this).data('date');
+        syncDropdownsToDate('exp', d);
+        $('#expDate').val(d).trigger('change');
     });
 
     $('.use-btn').on('click', function() {
@@ -602,6 +666,7 @@ $(document).ready(function() {
 
     $('#applyMfdBtn').on('click', function() {
         let isoDate = $(this).data('date');
+        syncDropdownsToDate('mfd', isoDate);
         $('#mfdDate').val(isoDate).trigger('change');
         $('#batchCodeInput').val('');
         $('#decodeResult').addClass('d-none');
