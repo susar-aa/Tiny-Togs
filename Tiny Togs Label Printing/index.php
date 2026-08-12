@@ -211,6 +211,21 @@ if (isset($_REQUEST['action'])) {
             background: var(--ios-gray-6);
         }
 
+        /* Custom Date Grid Dropdown Styling */
+        .date-dropdown { position: relative; user-select: none; flex: 1; }
+        .date-display { border: 1px solid var(--ios-gray-4); border-radius: 8px; padding: 0.5rem; background: #fff; cursor: pointer; text-align: center; font-weight: 500; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center; }
+        .date-display:after { content: '\f0d7'; font-family: "Font Awesome 6 Free"; font-weight: 900; font-size: 0.8rem; color: var(--ios-gray-3); }
+        .date-display:hover { background: var(--ios-gray-6); }
+        .date-grid-popup { display: none; position: absolute; top: 100%; left: 0; z-index: 1000; background: #fff; border: 1px solid var(--ios-gray-4); border-radius: 12px; padding: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); margin-top: 5px; }
+        .date-grid-popup.active { display: block; }
+        .grid-container { display: grid; gap: 5px; }
+        .grid-years { grid-template-columns: repeat(4, 1fr); width: 280px; }
+        .grid-months { grid-template-columns: repeat(4, 1fr); width: 240px; }
+        .grid-days { grid-template-columns: repeat(7, 1fr); width: 280px; }
+        .grid-btn { border: none; background: var(--ios-gray-6); border-radius: 6px; padding: 8px 0; text-align: center; cursor: pointer; font-size: 0.85rem; color: var(--ios-label); transition: 0.2s; }
+        .grid-btn:hover { background: var(--ios-gray-4); }
+        .grid-btn.selected { background: var(--ios-blue); color: #fff; font-weight: bold; }
+
         /* Print Styling for Zebra ZD230 (50mm x 25mm, 2 per row) */
         @media print {
             body * {
@@ -297,21 +312,45 @@ if (isset($_REQUEST['action'])) {
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">Date of Manufacture</label>
-                                <div class="d-flex gap-1">
-                                    <select class="form-select p-2" id="mfdYear" required><option value="">YYYY</option></select>
-                                    <select class="form-select p-2" id="mfdMonth" required><option value="">MM</option></select>
-                                    <select class="form-select p-2" id="mfdDay" required><option value="">DD</option></select>
+                                <div class="d-flex gap-2">
+                                    <div class="date-dropdown">
+                                        <div class="date-display" id="mfdYearDisp" data-type="year" data-prefix="mfd">YYYY</div>
+                                        <div class="date-grid-popup"><div class="grid-container grid-years" id="mfdYearGrid"></div></div>
+                                    </div>
+                                    <div class="date-dropdown">
+                                        <div class="date-display" id="mfdMonthDisp" data-type="month" data-prefix="mfd">MM</div>
+                                        <div class="date-grid-popup"><div class="grid-container grid-months" id="mfdMonthGrid"></div></div>
+                                    </div>
+                                    <div class="date-dropdown">
+                                        <div class="date-display" id="mfdDayDisp" data-type="day" data-prefix="mfd">DD</div>
+                                        <div class="date-grid-popup"><div class="grid-container grid-days" id="mfdDayGrid"></div></div>
+                                    </div>
                                 </div>
                                 <input type="hidden" id="mfdDate" required>
+                                <input type="hidden" id="mfdYearVal">
+                                <input type="hidden" id="mfdMonthVal">
+                                <input type="hidden" id="mfdDayVal">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">Date of Expiry</label>
-                                <div class="d-flex gap-1">
-                                    <select class="form-select p-2" id="expYear" required><option value="">YYYY</option></select>
-                                    <select class="form-select p-2" id="expMonth" required><option value="">MM</option></select>
-                                    <select class="form-select p-2" id="expDay" required><option value="">DD</option></select>
+                                <div class="d-flex gap-2">
+                                    <div class="date-dropdown">
+                                        <div class="date-display" id="expYearDisp" data-type="year" data-prefix="exp">YYYY</div>
+                                        <div class="date-grid-popup"><div class="grid-container grid-years" id="expYearGrid"></div></div>
+                                    </div>
+                                    <div class="date-dropdown">
+                                        <div class="date-display" id="expMonthDisp" data-type="month" data-prefix="exp">MM</div>
+                                        <div class="date-grid-popup"><div class="grid-container grid-months" id="expMonthGrid"></div></div>
+                                    </div>
+                                    <div class="date-dropdown">
+                                        <div class="date-display" id="expDayDisp" data-type="day" data-prefix="exp">DD</div>
+                                        <div class="date-grid-popup"><div class="grid-container grid-days" id="expDayGrid"></div></div>
+                                    </div>
                                 </div>
                                 <input type="hidden" id="expDate" required>
+                                <input type="hidden" id="expYearVal">
+                                <input type="hidden" id="expMonthVal">
+                                <input type="hidden" id="expDayVal">
                                 <div id="expSuggestions" class="mt-1">
                                     <!-- Suggestions will be injected here -->
                                 </div>
@@ -399,34 +438,75 @@ if (isset($_REQUEST['action'])) {
 <script>
 $(document).ready(function() {
 
-    // ---- Date Selectors Setup ----
+    // ---- Custom Date Selectors Setup ----
     const currentYearStatic = new Date().getFullYear();
     const monthsArr = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     
-    let yearOptions = '<option value="">YYYY</option>';
+    // Generate Grids
+    let yearHtml = '';
     for(let y = currentYearStatic - 10; y <= currentYearStatic + 15; y++) {
-        yearOptions += `<option value="${y}">${y}</option>`;
+        yearHtml += `<div class="grid-btn" data-val="${y}">${y}</div>`;
     }
-    $('#mfdYear, #expYear').html(yearOptions);
+    $('#mfdYearGrid, #expYearGrid').html(yearHtml);
 
-    let monthOptions = '<option value="">MM</option>';
+    let monthHtml = '';
     for(let m = 1; m <= 12; m++) {
         let val = m.toString().padStart(2, '0');
-        monthOptions += `<option value="${val}">${monthsArr[m-1]}</option>`;
+        monthHtml += `<div class="grid-btn" data-val="${val}">${monthsArr[m-1]}</div>`;
     }
-    $('#mfdMonth, #expMonth').html(monthOptions);
+    $('#mfdMonthGrid, #expMonthGrid').html(monthHtml);
 
-    let dayOptions = '<option value="">DD</option>';
+    let dayHtml = '';
     for(let d = 1; d <= 31; d++) {
         let val = d.toString().padStart(2, '0');
-        dayOptions += `<option value="${val}">${val}</option>`;
+        dayHtml += `<div class="grid-btn" data-val="${val}">${val}</div>`;
     }
-    $('#mfdDay, #expDay').html(dayOptions);
+    $('#mfdDayGrid, #expDayGrid').html(dayHtml);
+
+    // Dropdown Toggles
+    $('.date-display').on('click', function(e) {
+        e.stopPropagation();
+        let popup = $(this).siblings('.date-grid-popup');
+        let isAct = popup.hasClass('active');
+        $('.date-grid-popup').removeClass('active');
+        if (!isAct) popup.addClass('active');
+    });
+
+    $(document).on('click', function() {
+        $('.date-grid-popup').removeClass('active');
+    });
+
+    $('.date-grid-popup').on('click', function(e) {
+        e.stopPropagation(); // Keep popup open when clicking inside
+    });
+
+    // Selection
+    $(document).on('click', '.grid-btn', function() {
+        let btn = $(this);
+        let popup = btn.closest('.date-grid-popup');
+        let display = popup.siblings('.date-display');
+        let prefix = display.data('prefix');
+        let type = display.data('type');
+        let val = btn.data('val');
+
+        // Update UI
+        btn.siblings().removeClass('selected');
+        btn.addClass('selected');
+        
+        let displayStr = val;
+        if (type === 'month') displayStr = monthsArr[parseInt(val)-1];
+        display.text(displayStr);
+        popup.removeClass('active');
+
+        // Update Values
+        $(`#${prefix}${type.charAt(0).toUpperCase() + type.slice(1)}Val`).val(val);
+        updateHiddenDate(prefix);
+    });
 
     function updateHiddenDate(prefix) {
-        let y = $(`#${prefix}Year`).val();
-        let m = $(`#${prefix}Month`).val();
-        let d = $(`#${prefix}Day`).val();
+        let y = $(`#${prefix}YearVal`).val();
+        let m = $(`#${prefix}MonthVal`).val();
+        let d = $(`#${prefix}DayVal`).val();
         if (y && m && d) {
             $(`#${prefix}Date`).val(`${y}-${m}-${d}`).trigger('change');
         } else {
@@ -436,19 +516,32 @@ $(document).ready(function() {
 
     function syncDropdownsToDate(prefix, dateStr) {
         if (!dateStr) {
-            $(`#${prefix}Year, #${prefix}Month, #${prefix}Day`).val('');
+            $(`#${prefix}YearVal, #${prefix}MonthVal, #${prefix}DayVal`).val('');
+            $(`#${prefix}YearDisp`).text('YYYY');
+            $(`#${prefix}MonthDisp`).text('MM');
+            $(`#${prefix}DayDisp`).text('DD');
+            $(`#${prefix}YearGrid .grid-btn, #${prefix}MonthGrid .grid-btn, #${prefix}DayGrid .grid-btn`).removeClass('selected');
             return;
         }
         let parts = dateStr.split('-');
         if (parts.length === 3) {
-            $(`#${prefix}Year`).val(parts[0]);
-            $(`#${prefix}Month`).val(parts[1]);
-            $(`#${prefix}Day`).val(parts[2]);
+            let y = parts[0];
+            let m = parts[1];
+            let d = parts[2];
+
+            $(`#${prefix}YearVal`).val(y);
+            $(`#${prefix}MonthVal`).val(m);
+            $(`#${prefix}DayVal`).val(d);
+
+            $(`#${prefix}YearDisp`).text(y);
+            $(`#${prefix}MonthDisp`).text(monthsArr[parseInt(m)-1]);
+            $(`#${prefix}DayDisp`).text(d);
+
+            $(`#${prefix}YearGrid .grid-btn`).removeClass('selected').filter(`[data-val="${y}"]`).addClass('selected');
+            $(`#${prefix}MonthGrid .grid-btn`).removeClass('selected').filter(`[data-val="${m}"]`).addClass('selected');
+            $(`#${prefix}DayGrid .grid-btn`).removeClass('selected').filter(`[data-val="${d}"]`).addClass('selected');
         }
     }
-
-    $('#mfdYear, #mfdMonth, #mfdDay').on('change', () => updateHiddenDate('mfd'));
-    $('#expYear, #expMonth, #expDay').on('change', () => updateHiddenDate('exp'));
 
     // ---- Live Preview Update ----
     function updatePreview() {
