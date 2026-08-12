@@ -47,6 +47,19 @@
                     <i class="fa-solid fa-arrow-right"></i>
                 </div>
             </a>
+
+            <!-- Label Printing Card -->
+            <a href="Tiny%20Togs%20Label%20Printing/" target="_blank" class="card fade-in delay-4">
+                <div class="card-icon">
+                    <i class="fa-solid fa-tags"></i>
+                </div>
+                <h2>Label Printing</h2>
+                <p>Generate optimized stickers with Aveeno CheckFresh integration.</p>
+                <div class="card-action">
+                    <span>Enter System</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </div>
+            </a>
         </div>
     </div>
 </body>

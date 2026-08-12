@@ -68,12 +68,6 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         <span>SUPPLIERS</span>
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a href="label-printing.php" class="nav-link <?= ($current_page == 'label-printing.php') ? 'active' : '' ?>">
-                        <i class="fa-solid fa-print"></i>
-                        <span>LABEL PRINTING</span>
-                    </a>
-                </li>
             </ul>
             <div class="sidebar-footer">
                 <span>Version 1.0.0</span>
