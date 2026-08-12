@@ -519,54 +519,64 @@ $(document).ready(function() {
         let digits = code.replace(/\D/g, ''); // Extract only numbers
         let mfdDate = null;
         let currentYear = new Date().getFullYear();
+        let candidates = [];
 
         $('#decodeError').addClass('d-none');
         $('#decodeResult').addClass('d-none');
 
-        if (digits.length >= 4 && digits.length <= 5) {
-            let ddd = parseInt(digits.substring(0, 3));
-            let parsedDate = null;
+        if (digits.length >= 4) {
+            let ddd1 = parseInt(digits.substring(0, 3));
+            let yy1_2 = digits.length >= 5 ? parseInt(digits.substring(3, 5)) : null;
+            let y1_1 = parseInt(digits.substring(3, 4));
+            
+            let yy2 = digits.length >= 5 ? parseInt(digits.substring(0, 2)) : null;
+            let ddd2 = digits.length >= 5 ? parseInt(digits.substring(2, 5)) : null;
 
-            if (ddd >= 1 && ddd <= 366) {
-                // Potential format: DDDY or DDDYY
-                let y = digits.substring(3);
-                let year = 2000;
-                
-                if (y.length === 1) {
-                    // DDDY (e.g. 4 => 2024 or 2014)
-                    let lastDigitCurrent = currentYear % 10;
-                    let numY = parseInt(y);
-                    // Assume it's in the current decade if it matches, otherwise previous decade if it's way in future
-                    let potentialYear = Math.floor(currentYear / 10) * 10 + numY;
-                    if (potentialYear > currentYear + 1) potentialYear -= 10;
-                    year = potentialYear;
-                } else if (y.length === 2) {
-                    // DDDYY (e.g. 24 => 2024)
-                    year = 2000 + parseInt(y);
-                }
-
-                // Calculate Date from Julian Day
-                parsedDate = new Date(year, 0); // Jan 1st
-                parsedDate.setDate(ddd);
-            } 
-            else if (digits.length === 5) {
-                // Potential format YYDDD
-                let yy = parseInt(digits.substring(0, 2));
-                let ddd = parseInt(digits.substring(2, 5));
-                if (ddd >= 1 && ddd <= 366) {
-                    let year = 2000 + yy;
-                    parsedDate = new Date(year, 0);
-                    parsedDate.setDate(ddd);
-                }
+            // 1. Try DDDYY format (e.g. 103192 -> 103rd day, 2019)
+            if (ddd1 >= 1 && ddd1 <= 366 && yy1_2 !== null) {
+                let d = new Date(2000 + yy1_2, 0);
+                d.setDate(ddd1);
+                candidates.push({ date: d, format: 'DDDYY' });
+            }
+            
+            // 2. Try YYDDD format (e.g. 23103 -> 2023, 103rd day)
+            if (ddd2 >= 1 && ddd2 <= 366 && yy2 !== null) {
+                let d = new Date(2000 + yy2, 0);
+                d.setDate(ddd2);
+                candidates.push({ date: d, format: 'YYDDD' });
             }
 
-            if (parsedDate && !isNaN(parsedDate.getTime())) {
-                mfdDate = parsedDate;
+            // 3. Try DDDY format (e.g. 1039 -> 103rd day, 2019/2029)
+            if (ddd1 >= 1 && ddd1 <= 366) {
+                let potentialYear = Math.floor(currentYear / 10) * 10 + y1_1;
+                // If it's more than 1 year in the future, it's probably from the previous decade
+                if (potentialYear > currentYear + 1) potentialYear -= 10;
+                let d = new Date(potentialYear, 0);
+                d.setDate(ddd1);
+                candidates.push({ date: d, format: 'DDDY' });
             }
         }
 
-        if (mfdDate) {
-            let isoDate = mfdDate.toISOString().split('T')[0];
+        // Pick the most plausible date (closest to current year)
+        if (candidates.length > 0) {
+            let best = null;
+            let minDiff = 9999;
+            
+            candidates.forEach(c => {
+                let yDiff = Math.abs(c.date.getFullYear() - currentYear);
+                // Heavily penalize future dates (unless they are within 1 year)
+                if (c.date.getFullYear() > currentYear + 1) yDiff += 20;
+                
+                if (yDiff < minDiff) {
+                    minDiff = yDiff;
+                    best = c.date;
+                }
+            });
+            mfdDate = best;
+        }
+
+        if (mfdDate && !isNaN(mfdDate.getTime())) {
+            let isoDate = mfdDate.getFullYear() + '-' + String(mfdDate.getMonth() + 1).padStart(2, '0') + '-' + String(mfdDate.getDate()).padStart(2, '0');
             let displayDate = mfdDate.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
             
             $('#decodedMfdText').text(displayDate);
