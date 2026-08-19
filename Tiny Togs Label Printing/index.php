@@ -307,15 +307,13 @@ if (isset($_REQUEST['action'])) {
             #print-container, #print-container * { visibility: visible; }
             #print-container {
                 display: block;
-                position: absolute; left: 0; top: 0; width: 102mm; margin: 0; padding: 0;
+                position: absolute; left: 0; top: 0; width: 100mm; margin: 0; padding: 0;
             }
             .print-row {
-                width: 102mm; 
+                width: 100mm; 
                 height: 25mm; 
                 display: flex; 
                 flex-direction: row; 
-                justify-content: flex-start;
-                gap: 2mm;
                 page-break-after: always;
                 page-break-inside: avoid;
                 break-after: page;
@@ -329,7 +327,7 @@ if (isset($_REQUEST['action'])) {
             }
             .print-product { font-weight: 700; font-size: 9pt; line-height: 1; margin-bottom: 2mm; text-transform: uppercase; max-height: 18pt; overflow: hidden; }
             .print-date { font-size: 7.5pt; line-height: 1.1; font-weight: 600; }
-            @page { size: 102mm 25mm; margin: 0; }
+            @page { size: 100mm 25mm; margin: 0; }
         }
     </style>
 </head>
