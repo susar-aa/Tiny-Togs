@@ -306,17 +306,29 @@ if (isset($_REQUEST['action'])) {
             body * { visibility: hidden; }
             #print-container, #print-container * { visibility: visible; }
             #print-container {
-                position: absolute; left: 0; top: 0; width: 100mm; margin: 0; padding: 0;
-                display: flex; flex-wrap: wrap; align-content: flex-start;
+                position: absolute; left: 0; top: 0; width: 102mm; margin: 0; padding: 0;
+            }
+            .print-row {
+                width: 102mm; 
+                height: 25mm; 
+                display: flex; 
+                flex-direction: row; 
+                justify-content: flex-start;
+                gap: 2mm;
+                page-break-after: always;
+                page-break-inside: avoid;
+                break-after: page;
+                break-inside: avoid;
+                overflow: hidden;
             }
             .print-label {
                 width: 50mm; height: 25mm; box-sizing: border-box; padding: 2mm 3mm; overflow: hidden;
                 font-family: Arial, sans-serif; color: #000; background: #fff;
-                display: flex; flex-direction: column; justify-content: center; page-break-inside: avoid;
+                display: flex; flex-direction: column; justify-content: center;
             }
             .print-product { font-weight: 700; font-size: 9pt; line-height: 1; margin-bottom: 2mm; text-transform: uppercase; max-height: 18pt; overflow: hidden; }
             .print-date { font-size: 7.5pt; line-height: 1.1; font-weight: 600; }
-            @page { size: 100mm 25mm; margin: 0; }
+            @page { size: 102mm 25mm; margin: 0; }
         }
     </style>
 </head>
@@ -683,15 +695,25 @@ $(document).ready(function() {
         $.post('index.php', { action: 'save_product', product_name: name });
 
         let container = $('#print-container').empty();
+        let labelsHtml = '';
         for (let i = 0; i < qty; i++) {
-            container.append(`
+            labelsHtml += `
                 <div class="print-label">
                     <div class="print-product">${name}</div>
                     <div class="print-date">MFD: ${fmtDate(mfd)}</div>
                     <div class="print-date">EXP: ${fmtDate(exp)}</div>
                     <div class="print-date">USE WITHIN: ${use}</div>
-                </div>`);
+                </div>`;
         }
+        
+        // Wrap every 2 labels in a row to force correct page breaks
+        let labels = $(labelsHtml);
+        for(let i = 0; i < labels.length; i+=2) {
+            let row = $('<div class="print-row"></div>');
+            row.append(labels.slice(i, i+2));
+            container.append(row);
+        }
+        
         setTimeout(() => window.print(), 80);
     }
     $('#mainPrintBtn, #topPrintBtn').on('click', doPrint);
