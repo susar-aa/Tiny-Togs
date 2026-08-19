@@ -306,6 +306,7 @@ if (isset($_REQUEST['action'])) {
             body * { visibility: hidden; }
             #print-container, #print-container * { visibility: visible; }
             #print-container {
+                display: block;
                 position: absolute; left: 0; top: 0; width: 102mm; margin: 0; padding: 0;
             }
             .print-row {
