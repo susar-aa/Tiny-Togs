@@ -303,31 +303,32 @@ if (isset($_REQUEST['action'])) {
         #print-container { display: none; }
 
         @media print {
-            @page { size: 100mm 25mm; margin: 0; }
-            html, body { margin: 0 !important; padding: 0 !important; }
+            @page { size: 102mm 25mm; margin: 0; }
+            html, body { width: 102mm; height: 25mm; margin: 0 !important; padding: 0 !important; }
             body * { visibility: hidden; }
             #print-container, #print-container * { visibility: visible; }
             #print-container {
                 display: block;
-                position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0;
+                position: absolute; left: 0; top: 0; width: 102mm; margin: 0; padding: 0;
             }
             .print-row {
-                width: 100%; 
+                width: 102mm; 
                 height: 25mm; 
                 display: flex; 
-                flex-direction: row; 
+                flex-direction: row;
+                flex-wrap: nowrap;
                 page-break-after: always;
                 page-break-inside: avoid;
                 break-after: page;
                 break-inside: avoid;
                 overflow: hidden;
-                box-sizing: border-box;
             }
             .print-label {
-                width: 50%; height: 25mm; box-sizing: border-box; padding: 1mm 4mm; overflow: hidden;
+                width: 50mm; height: 25mm; box-sizing: border-box; padding: 1mm 4mm; overflow: hidden;
                 font-family: Arial, sans-serif; color: #000; background: #fff;
                 display: flex; flex-direction: column; justify-content: center;
             }
+            .print-label:first-child { margin-right: 2mm; }
             .print-product { font-weight: 800; font-size: 11pt; line-height: 1.1; margin-bottom: 2mm; text-transform: uppercase; max-height: 24pt; overflow: hidden; }
             .print-date { font-size: 8.5pt; line-height: 1.2; font-weight: 700; }
         }
@@ -696,23 +697,21 @@ $(document).ready(function() {
         $.post('index.php', { action: 'save_product', product_name: name });
 
         let container = $('#print-container').empty();
-        let labelsHtml = '';
+        let currentRow = null;
+        
         for (let i = 0; i < qty; i++) {
-            labelsHtml += `
+            if (i % 2 === 0) {
+                currentRow = $('<div class="print-row"></div>');
+                container.append(currentRow);
+            }
+            currentRow.append(`
                 <div class="print-label">
                     <div class="print-product">${name}</div>
                     <div class="print-date">MFD: ${fmtDate(mfd)}</div>
                     <div class="print-date">EXP: ${fmtDate(exp)}</div>
                     <div class="print-date">USE WITHIN: ${use}</div>
-                </div>`;
-        }
-        
-        // Wrap every 2 labels in a row to force correct page breaks
-        let labels = $(labelsHtml);
-        for(let i = 0; i < labels.length; i+=2) {
-            let row = $('<div class="print-row"></div>');
-            row.append(labels.slice(i, i+2));
-            container.append(row);
+                </div>
+            `);
         }
         
         setTimeout(() => window.print(), 80);
