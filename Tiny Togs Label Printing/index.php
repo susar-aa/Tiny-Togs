@@ -303,14 +303,16 @@ if (isset($_REQUEST['action'])) {
         #print-container { display: none; }
 
         @media print {
+            @page { size: 100mm 25mm; margin: 0; }
+            html, body { margin: 0 !important; padding: 0 !important; }
             body * { visibility: hidden; }
             #print-container, #print-container * { visibility: visible; }
             #print-container {
                 display: block;
-                position: absolute; left: 0; top: 0; width: 100mm; margin: 0; padding: 0;
+                position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0;
             }
             .print-row {
-                width: 100mm; 
+                width: 100%; 
                 height: 25mm; 
                 display: flex; 
                 flex-direction: row; 
@@ -319,15 +321,15 @@ if (isset($_REQUEST['action'])) {
                 break-after: page;
                 break-inside: avoid;
                 overflow: hidden;
+                box-sizing: border-box;
             }
             .print-label {
-                width: 50mm; height: 25mm; box-sizing: border-box; padding: 2mm 3mm; overflow: hidden;
+                width: 50%; height: 25mm; box-sizing: border-box; padding: 1mm 4mm; overflow: hidden;
                 font-family: Arial, sans-serif; color: #000; background: #fff;
                 display: flex; flex-direction: column; justify-content: center;
             }
-            .print-product { font-weight: 700; font-size: 9pt; line-height: 1; margin-bottom: 2mm; text-transform: uppercase; max-height: 18pt; overflow: hidden; }
-            .print-date { font-size: 7.5pt; line-height: 1.1; font-weight: 600; }
-            @page { size: 100mm 25mm; margin: 0; }
+            .print-product { font-weight: 800; font-size: 11pt; line-height: 1.1; margin-bottom: 2mm; text-transform: uppercase; max-height: 24pt; overflow: hidden; }
+            .print-date { font-size: 8.5pt; line-height: 1.2; font-weight: 700; }
         }
     </style>
 </head>
