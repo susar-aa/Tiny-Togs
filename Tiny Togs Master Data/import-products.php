@@ -245,7 +245,7 @@ $(document).ready(function() {
                 }
             },
             error: function(xhr, status, error) {
-                showError("Uploading error: " + error);
+                showError("Uploading error: " + error, xhr.responseText);
             }
         });
     });
@@ -287,7 +287,7 @@ $(document).ready(function() {
                 }
             },
             error: function(xhr, status, error) {
-                showError("Batch processing failed: " + error);
+                showError("Batch processing failed: " + error, xhr.responseText);
             }
         });
     }
@@ -314,16 +314,20 @@ $(document).ready(function() {
                 }
             },
             error: function(xhr, status, error) {
-                showError("Finalization failed: " + error);
+                showError("Finalization failed: " + error, xhr.responseText);
             }
         });
     }
 
-    function showError(message) {
+    function showError(message, detailedMessage = '') {
         $('#progressPanel').addClass('d-none');
         $('#uploadPanel').removeClass('d-none');
-        alert("Import Error: " + message);
-        location.reload();
+        if (detailedMessage) {
+            alert("Import Error: " + message + "\n\nServer Response:\n" + detailedMessage.substring(0, 1000));
+        } else {
+            alert("Import Error: " + message);
+            location.reload();
+        }
     }
 });
 </script>
