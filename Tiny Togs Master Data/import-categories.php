@@ -721,7 +721,7 @@ include __DIR__ . '/views/layout/header.php';
                                     </tr>
                                 <?php else: ?>
                                     <?php foreach ($categories as $cat): ?>
-                                        <tr data-id="<?= $cat['id'] ?>" data-name="<?= htmlspecialchars($cat['category_name']) ?>" data-main="<?= htmlspecialchars($cat['main_category'] ?? '') ?>" data-items="<?= htmlspecialchars($cat['including_items']) ?>">
+                                        <tr data-id="<?= $cat['id'] ?>" data-name="<?= htmlspecialchars($cat['category_name']) ?>" data-main="<?= htmlspecialchars($cat['main_category'] ?? '') ?>" data-items="<?= htmlspecialchars($cat['including_items'] ?? '') ?>">
                                             <td class="text-center">
                                                 <input type="checkbox" class="form-check-input cat-checkbox" value="<?= $cat['id'] ?>">
                                             </td>
@@ -738,7 +738,7 @@ include __DIR__ . '/views/layout/header.php';
                                             </td>
                                             <td>
                                                 <?php 
-                                                $kws = explode(',', $cat['including_items']);
+                                                $kws = explode(',', $cat['including_items'] ?? '');
                                                 $kwCount = 0;
                                                 foreach ($kws as $kw): 
                                                     if (empty(trim($kw))) continue;
