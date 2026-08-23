@@ -41,18 +41,26 @@ if (isset($_GET['action'])) {
         $items = trim($_POST['including_items'] ?? '');
         
         $catModel = new Category();
-        if ($id > 0) {
-            $res = $catModel->updateCategory($id, $name, $items, $main_cat);
-            $msg = 'Category updated successfully.';
-        } else {
-            $res = $catModel->importCategory($name, $items, $main_cat);
-            $msg = 'Category created successfully.';
-        }
+        $logModel = new \Models\Log();
         
-        if ($res) {
-            echo json_encode(['status' => 'success', 'message' => $msg]);
-        } else {
-            echo json_encode(['status' => 'error', 'message' => 'Failed to save category.']);
+        try {
+            if ($id > 0) {
+                $res = $catModel->updateCategory($id, $name, $items, $main_cat);
+                $msg = 'Category updated successfully.';
+            } else {
+                $res = $catModel->importCategory($name, $items, $main_cat);
+                $msg = 'Category created successfully.';
+            }
+            
+            if ($res) {
+                echo json_encode(['status' => 'success', 'message' => $msg]);
+            } else {
+                $logModel->record('category_save_failed', "Failed to save category: $name. Method returned false.");
+                echo json_encode(['status' => 'error', 'message' => 'Failed to save category.']);
+            }
+        } catch (\Exception $e) {
+            $logModel->record('category_save_exception', "Exception saving category $name: " . $e->getMessage());
+            echo json_encode(['status' => 'error', 'message' => 'System error: ' . $e->getMessage()]);
         }
         exit;
     }

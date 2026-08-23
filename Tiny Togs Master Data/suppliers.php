@@ -30,18 +30,25 @@ if (isset($_GET['action'])) {
         }
 
         $supModel = new Supplier();
-        if ($id > 0) {
-            $res = $supModel->update($id, $name);
-            $msg = 'Supplier updated successfully.';
-        } else {
-            $res = $supModel->save($name);
-            $msg = 'Supplier created successfully.';
-        }
+        $logModel = new \Models\Log();
+        try {
+            if ($id > 0) {
+                $res = $supModel->update($id, $name);
+                $msg = 'Supplier updated successfully.';
+            } else {
+                $res = $supModel->save($name);
+                $msg = 'Supplier created successfully.';
+            }
 
-        if ($res) {
-            echo json_encode(['status' => 'success', 'message' => $msg]);
-        } else {
-            echo json_encode(['status' => 'error', 'message' => 'Failed to save Supplier.']);
+            if ($res) {
+                echo json_encode(['status' => 'success', 'message' => $msg]);
+            } else {
+                $logModel->record('supplier_save_failed', "Failed to save Supplier: $name. Method returned false.");
+                echo json_encode(['status' => 'error', 'message' => 'Failed to save Supplier.']);
+            }
+        } catch (\Exception $e) {
+            $logModel->record('supplier_save_exception', "Exception saving Supplier $name: " . $e->getMessage());
+            echo json_encode(['status' => 'error', 'message' => 'System error: ' . $e->getMessage()]);
         }
         exit;
     }

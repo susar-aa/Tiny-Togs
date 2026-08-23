@@ -30,18 +30,25 @@ if (isset($_GET['action'])) {
         }
 
         $mcModel = new MainCategory();
-        if ($id > 0) {
-            $res = $mcModel->update($id, $name);
-            $msg = 'Main Category updated successfully.';
-        } else {
-            $res = $mcModel->save($name);
-            $msg = 'Main Category created successfully.';
-        }
-        
-        if ($res) {
-            echo json_encode(['status' => 'success', 'message' => $msg]);
-        } else {
-            echo json_encode(['status' => 'error', 'message' => 'Failed to save Main Category.']);
+        $logModel = new \Models\Log();
+        try {
+            if ($id > 0) {
+                $res = $mcModel->update($id, $name);
+                $msg = 'Main Category updated successfully.';
+            } else {
+                $res = $mcModel->save($name);
+                $msg = 'Main Category created successfully.';
+            }
+            
+            if ($res) {
+                echo json_encode(['status' => 'success', 'message' => $msg]);
+            } else {
+                $logModel->record('main_category_save_failed', "Failed to save Main Category: $name. Method returned false.");
+                echo json_encode(['status' => 'error', 'message' => 'Failed to save Main Category.']);
+            }
+        } catch (\Exception $e) {
+            $logModel->record('main_category_save_exception', "Exception saving Main Category $name: " . $e->getMessage());
+            echo json_encode(['status' => 'error', 'message' => 'System error: ' . $e->getMessage()]);
         }
         exit;
     }
