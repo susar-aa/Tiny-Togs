@@ -138,9 +138,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['category_file'])) {
 
 // Fetch categories for display
 $categoryModel = new Category();
-$categories = $categoryModel->getAll();
-$mainCategoryModel = new \Models\MainCategory();
-$mainCategories = $mainCategoryModel->getAll();
+$logModel = new \Models\Log();
+try {
+    $categories = $categoryModel->getAll();
+} catch (\Exception $e) {
+    $logModel->record('categories_list_fetch_exception', "Exception loading category list: " . $e->getMessage());
+    $categories = [];
+}
+
+try {
+    $mainCategoryModel = new \Models\MainCategory();
+    $mainCategories = $mainCategoryModel->getAll();
+} catch (\Exception $e) {
+    $logModel->record('main_categories_list_fetch_exception', "Exception loading main category list: " . $e->getMessage());
+    $mainCategories = [];
+}
 
 include __DIR__ . '/views/layout/header.php';
 ?>
@@ -973,6 +985,7 @@ $(document).ready(function() {
     $('#categoryForm').on('submit', function(e) {
         e.preventDefault();
         const formData = $(this).serialize();
+        console.log("Submitting Category Form:", formData);
 
         $.ajax({
             url: 'import-categories.php?action=save',
@@ -980,6 +993,7 @@ $(document).ready(function() {
             data: formData,
             dataType: 'json',
             success: function(res) {
+                console.log("Save Category Success Response:", res);
                 if (res.status === 'success') {
                     $('#categoryModal').modal('hide');
                     alert(res.message);
@@ -988,8 +1002,10 @@ $(document).ready(function() {
                     alert(res.message);
                 }
             },
-            error: function() {
-                alert('Error communication with server.');
+            error: function(xhr, status, error) {
+                console.error("Save Category AJAX Error:", status, error);
+                console.error("XHR Response Text:", xhr.responseText);
+                alert('Error communication with server. Check console for details.');
             }
         });
     });
