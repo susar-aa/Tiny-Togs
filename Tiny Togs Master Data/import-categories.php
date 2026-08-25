@@ -496,6 +496,8 @@ include __DIR__ . '/views/layout/header.php';
     .ios-table tbody tr { transition: background 0.15s ease; }
     .ios-table tbody tr:hover { background: var(--ios-gray-6); }
     .ios-table tbody tr.table-primary { background: rgba(0,122,255,0.07) !important; }
+    .ios-table tbody tr.auto-created-row { background: rgba(255,149,0,0.04); }
+    .ios-table tbody tr.auto-created-row:hover { background: rgba(255,149,0,0.09); }
 
     .clickable-category {
         font-weight: 600;
@@ -704,10 +706,15 @@ include __DIR__ . '/views/layout/header.php';
                 <div class="ios-card-header">
                     <h5 class="ios-card-title">Active Categories &amp; Keywords</h5>
                     <div class="d-flex align-items-center gap-3 flex-wrap">
-                        <div class="ios-search-box" style="width: 270px;">
+                        <div class="ios-search-box" style="width: 250px;">
                             <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                            <input type="text" id="searchCategoryName" class="ios-input" placeholder="Search category, main or keyword...">
+                            <input type="text" id="searchCategoryName" class="ios-input" placeholder="Search category...">
                         </div>
+                        <select id="filterAutoCreated" class="ios-select" style="width: 155px; padding-left: 0.8rem; padding-right: 2rem;">
+                            <option value="all">All Categories</option>
+                            <option value="auto">Auto-Created</option>
+                            <option value="manual">Manual</option>
+                        </select>
                         <span class="ios-pill ios-pill-blue"><?= count($categories) ?> Categories</span>
                         <button class="ios-btn ios-btn-primary ios-btn-sm" id="addCategoryBtn">
                             <i class="fa-solid fa-plus"></i>Add Category
@@ -737,7 +744,7 @@ include __DIR__ . '/views/layout/header.php';
                                     </tr>
                                 <?php else: ?>
                                     <?php foreach ($categories as $cat): ?>
-                                        <tr data-id="<?= $cat['id'] ?>" data-name="<?= htmlspecialchars($cat['category_name']) ?>" data-main="<?= htmlspecialchars($cat['main_category'] ?? '') ?>" data-items="<?= htmlspecialchars($cat['including_items'] ?? '') ?>">
+                                        <tr data-id="<?= $cat['id'] ?>" data-name="<?= htmlspecialchars($cat['category_name']) ?>" data-main="<?= htmlspecialchars($cat['main_category'] ?? '') ?>" data-items="<?= htmlspecialchars($cat['including_items'] ?? '') ?>" data-auto-created="<?= $cat['is_auto_created'] ? '1' : '0' ?>" class="<?= $cat['is_auto_created'] ? 'auto-created-row' : '' ?>">
                                             <td class="text-center">
                                                 <input type="checkbox" class="form-check-input cat-checkbox" value="<?= $cat['id'] ?>">
                                             </td>
@@ -1144,9 +1151,11 @@ $(document).ready(function() {
         $('#categoriesTable tbody tr').removeClass('table-primary');
     });
 
-    // Real-time search for Category table
-    $('#searchCategoryName').on('input', function() {
-        const query = $(this).val().toLowerCase().trim();
+    // Real-time search and filter for Category table
+    $('#searchCategoryName, #filterAutoCreated').on('input change', function() {
+        const query = $('#searchCategoryName').val().toLowerCase().trim();
+        const filter = $('#filterAutoCreated').val();
+
         $('#categoriesTable tbody tr').each(function() {
             const tr = $(this);
             // Skip empty placeholder row if any
@@ -1155,8 +1164,15 @@ $(document).ready(function() {
             const name = tr.data('name') ? tr.data('name').toLowerCase() : '';
             const main = tr.data('main') ? tr.data('main').toLowerCase() : '';
             const items = tr.data('items') ? tr.data('items').toLowerCase() : '';
+            const isAuto = tr.data('auto-created') == '1';
 
-            if (name.includes(query) || main.includes(query) || items.includes(query)) {
+            let nameMatch = name.includes(query) || main.includes(query) || items.includes(query);
+            let filterMatch = true;
+
+            if (filter === 'auto' && !isAuto) filterMatch = false;
+            if (filter === 'manual' && isAuto) filterMatch = false;
+
+            if (nameMatch && filterMatch) {
                 tr.show();
             } else {
                 tr.hide();
