@@ -22,11 +22,12 @@ class ProductController {
         $category_filter = $_POST['category_filter'] ?? '';
         $product_name_filter = $_POST['product_name_filter'] ?? '';
         $supplier_filter = $_POST['supplier_filter'] ?? '';
+        $auto_type_filter = $_POST['auto_type_filter'] ?? '';
         
         $productModel = new Product();
-        $data = $productModel->getFilteredProducts($search, $start, $length, $order_column, $order_dir, $category_filter, $product_name_filter, $supplier_filter);
+        $data = $productModel->getFilteredProducts($search, $start, $length, $order_column, $order_dir, $category_filter, $product_name_filter, $supplier_filter, $auto_type_filter);
         $total_count = $productModel->getCount();
-        $filtered_count = $productModel->getFilteredProductsCount($search, $category_filter, $product_name_filter, $supplier_filter);
+        $filtered_count = $productModel->getFilteredProductsCount($search, $category_filter, $product_name_filter, $supplier_filter, $auto_type_filter);
         
         $response = [
             'draw' => isset($_POST['draw']) ? (int)$_POST['draw'] : 1,

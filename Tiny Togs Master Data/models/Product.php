@@ -128,7 +128,7 @@ class Product {
     /**
      * Retrieve products for DataTable server-side processing
      */
-    public function getFilteredProducts($search, $start, $length, $order_column, $order_dir, $category_filter, $product_name_filter = '', $supplier_filter = '') {
+    public function getFilteredProducts($search, $start, $length, $order_column, $order_dir, $category_filter, $product_name_filter = '', $supplier_filter = '', $auto_type_filter = '') {
         $sql = "SELECT id, code, product_code, product_name, current_category, cost_price, selling_price, supplier, other_fields_json 
                 FROM products WHERE 1=1";
         $params = [];
@@ -146,6 +146,14 @@ class Product {
         if (!empty($product_name_filter)) {
             $sql .= " AND product_name LIKE :product_name_filter";
             $params[':product_name_filter'] = '%' . $product_name_filter . '%';
+        }
+
+        if (!empty($auto_type_filter)) {
+            if ($auto_type_filter === 'auto') {
+                $sql .= " AND current_category IN (SELECT category_name FROM categories WHERE is_auto_created = 1)";
+            } elseif ($auto_type_filter === 'manual') {
+                $sql .= " AND current_category IN (SELECT category_name FROM categories WHERE is_auto_created = 0)";
+            }
         }
 
         if (!empty($search)) {
@@ -184,7 +192,7 @@ class Product {
     /**
      * Get count of filtered products for DataTable pagination total
      */
-    public function getFilteredProductsCount($search, $category_filter, $product_name_filter = '', $supplier_filter = '') {
+    public function getFilteredProductsCount($search, $category_filter, $product_name_filter = '', $supplier_filter = '', $auto_type_filter = '') {
         $sql = "SELECT COUNT(*) as cnt FROM products WHERE 1=1";
         $params = [];
 
@@ -201,6 +209,14 @@ class Product {
         if (!empty($product_name_filter)) {
             $sql .= " AND product_name LIKE :product_name_filter";
             $params[':product_name_filter'] = '%' . $product_name_filter . '%';
+        }
+
+        if (!empty($auto_type_filter)) {
+            if ($auto_type_filter === 'auto') {
+                $sql .= " AND current_category IN (SELECT category_name FROM categories WHERE is_auto_created = 1)";
+            } elseif ($auto_type_filter === 'manual') {
+                $sql .= " AND current_category IN (SELECT category_name FROM categories WHERE is_auto_created = 0)";
+            }
         }
 
         if (!empty($search)) {

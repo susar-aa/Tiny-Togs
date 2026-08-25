@@ -318,6 +318,12 @@ include __DIR__ . '/views/layout/header.php';
     #productsTable tbody tr.shown {
         background: rgba(0, 122, 255, 0.04);
     }
+    #productsTable tbody tr.auto-created-row {
+        background: rgba(255,149,0,0.04);
+    }
+    #productsTable tbody tr.auto-created-row:hover {
+        background: rgba(255,149,0,0.09);
+    }
 
     /* Product name cell */
     .product-name-toggle {
@@ -551,15 +557,24 @@ include __DIR__ . '/views/layout/header.php';
         <div class="ios-card-body">
             <div class="row g-3 align-items-end">
                 <!-- Search Product Name -->
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label for="searchProductName" class="ios-filter-label">Search Product Name</label>
                     <div class="ios-search-box">
                         <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                        <input type="text" id="searchProductName" class="ios-input" placeholder="Type product name to search...">
+                        <input type="text" id="searchProductName" class="ios-input" placeholder="Type name...">
                     </div>
                 </div>
+                <!-- Category Type Filter -->
+                <div class="col-md-3">
+                    <label for="filterAutoType" class="ios-filter-label">Category Type</label>
+                    <select id="filterAutoType" class="ios-select">
+                        <option value="">All Categories</option>
+                        <option value="auto">Auto-Created</option>
+                        <option value="manual">Manual</option>
+                    </select>
+                </div>
                 <!-- Category Filter -->
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label for="filterCategory" class="ios-filter-label">Filter By Category</label>
                     <select id="filterCategory" class="ios-select">
                         <option value="">All Categories</option>
@@ -577,7 +592,7 @@ include __DIR__ . '/views/layout/header.php';
                     </select>
                 </div>
                 <!-- Supplier Filter -->
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label for="filterSupplier" class="ios-filter-label">Filter By Supplier</label>
                     <select id="filterSupplier" class="ios-select">
                         <option value="">All Suppliers</option>
@@ -666,6 +681,7 @@ $(document).ready(function() {
                 d.category_filter = $('#filterCategory').val();
                 d.product_name_filter = $('#searchProductName').val();
                 d.supplier_filter = $('#filterSupplier').val();
+                d.auto_type_filter = $('#filterAutoType').val();
             }
         },
         columns: [
@@ -743,6 +759,16 @@ $(document).ready(function() {
         createdRow: function(row, data, dataIndex) {
             $(row).attr('id', 'product-row-' + data.id);
             $(row).attr('data-id', data.id);
+            
+            let isAuto = false;
+            categoriesList.forEach(function(cat) {
+                if (cat.category_name === data.current_category && parseInt(cat.is_auto_created) === 1) {
+                    isAuto = true;
+                }
+            });
+            if (isAuto) {
+                $(row).addClass('auto-created-row');
+            }
         }
     });
 
@@ -834,7 +860,7 @@ $(document).ready(function() {
     }
 
     // Redraw table when dropdown filters change
-    $('#filterCategory, #filterSupplier').on('change', function() {
+    $('#filterCategory, #filterSupplier, #filterAutoType').on('change', function() {
         selectedIds = [];
         $('#selectAllCheckbox').prop('checked', false);
         $('#bulkActionsPanel').addClass('d-none');
