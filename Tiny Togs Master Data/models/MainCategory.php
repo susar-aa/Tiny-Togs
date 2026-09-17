@@ -65,9 +65,9 @@ class MainCategory {
         $name = trim($name);
         if (empty($name)) return false;
 
-        $sql = "INSERT INTO main_categories (main_category_name) VALUES (:name) ON DUPLICATE KEY UPDATE main_category_name = :name";
+        $sql = "INSERT INTO main_categories (main_category_name) VALUES (:name) ON DUPLICATE KEY UPDATE main_category_name = :name2";
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([':name' => $name]);
+        $stmt->execute([':name' => $name, ':name2' => $name]);
         return $this->db->lastInsertId() ?: true;
     }
 
