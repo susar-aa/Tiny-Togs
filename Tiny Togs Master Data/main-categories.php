@@ -160,6 +160,17 @@ include __DIR__ . '/views/layout/header.php';
         transform: translateY(-1px);
         box-shadow: 0 6px 18px rgba(0, 122, 255, 0.4);
     }
+    .ios-btn-green {
+        background: var(--ios-green);
+        color: #fff;
+        box-shadow: 0 4px 14px rgba(52, 199, 89, 0.3);
+    }
+    .ios-btn-green:hover {
+        background: #2cb44e;
+        color: #fff;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(52, 199, 89, 0.4);
+    }
     .ios-btn-secondary { background: var(--ios-gray-5); color: var(--ios-label); }
     .ios-btn-secondary:hover { background: var(--ios-gray-4); color: var(--ios-label); }
 
@@ -346,12 +357,19 @@ include __DIR__ . '/views/layout/header.php';
 <div class="ios-wrap">
 
     <!-- ============ Page Header ============ -->
-    <div class="ios-page-header">
-        <h1 class="ios-page-title">
-            <span class="icon-badge"><i class="fa-solid fa-folder"></i></span>
-            Main Categories
-        </h1>
-        <p class="ios-page-subtitle">Manage active main categories and view sub-category association counts.</p>
+    <div class="ios-page-header d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div>
+            <h1 class="ios-page-title">
+                <span class="icon-badge"><i class="fa-solid fa-folder"></i></span>
+                Main Categories
+            </h1>
+            <p class="ios-page-subtitle">Manage active main categories and view sub-category association counts.</p>
+        </div>
+        <div>
+            <a href="export-categories.php" class="ios-btn ios-btn-green">
+                <i class="fa-solid fa-file-excel"></i>Export Categories
+            </a>
+        </div>
     </div>
 
     <!-- ============ Layout Grid ============ -->
@@ -367,6 +385,9 @@ include __DIR__ . '/views/layout/header.php';
                             <input type="text" id="searchMainCategoryName" class="ios-input" placeholder="Search main category...">
                         </div>
                         <span class="ios-pill ios-pill-blue"><?= count($mainCategories) ?> Main Categories</span>
+                        <a href="export-categories.php" class="ios-btn ios-btn-green ios-btn-sm me-1">
+                            <i class="fa-solid fa-file-excel"></i>Export Excel
+                        </a>
                         <button class="ios-btn ios-btn-primary ios-btn-sm" id="addMainCategoryBtn">
                             <i class="fa-solid fa-plus"></i>Add Main Category
                         </button>
