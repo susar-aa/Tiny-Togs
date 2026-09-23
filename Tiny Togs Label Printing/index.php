@@ -348,6 +348,9 @@ if (isset($_REQUEST['action'])) {
         <a href="../" class="btn btn-outline">
             <i class="fa-solid fa-arrow-left"></i> Back to Portal
         </a>
+        <a href="manufacturer.php" class="btn btn-outline" style="border-color: #F97316; color: #EA580C; background: #FFF7ED;">
+            <i class="fa-solid fa-industry"></i> Manufacturer Labels
+        </a>
         <button class="btn btn-primary" id="topPrintBtn">
             <i class="fa-solid fa-print"></i> Print Now
         </button>

@@ -16,6 +16,8 @@
             --green-light: #e6f9ed;
             --purple: #af52de;
             --purple-light: #f3eafb;
+            --orange: #ff9500;
+            --orange-light: #fff5e6;
             --bg: #f2f2f7;
             --card: #ffffff;
             --label: #1c1c1e;
@@ -46,7 +48,7 @@
 
         .portal {
             width: 100%;
-            max-width: 960px;
+            max-width: 1160px;
         }
 
         /* Header */
@@ -86,7 +88,7 @@
         /* Cards Grid */
         .cards-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 1.25rem;
         }
 
@@ -133,6 +135,11 @@
         .sys-card.purple:hover { border-color: rgba(175,82,222,0.3); }
         .sys-card.purple .card-icon-wrap { background: var(--purple-light); color: var(--purple); }
         .sys-card.purple .card-arrow { color: var(--purple); }
+
+        /* Card 4 - Orange */
+        .sys-card.orange:hover { border-color: rgba(255,149,0,0.35); }
+        .sys-card.orange .card-icon-wrap { background: var(--orange-light); color: var(--orange); }
+        .sys-card.orange .card-arrow { color: var(--orange); }
 
         .card-icon-wrap {
             width: 54px;
@@ -266,16 +273,31 @@
             </div>
         </a>
 
-        <!-- Label Printing -->
+        <!-- Standard Label Printing -->
         <a href="Tiny%20Togs%20Label%20Printing/" target="_blank" class="sys-card purple fade-up d4">
             <div class="card-icon-wrap">
                 <i class="fa-solid fa-tags"></i>
             </div>
-            <h2>Label Printing</h2>
-            <p>Decode batch codes and print Aveeno stickers optimized for Zebra ZD230.</p>
+            <h2>Standard Labels</h2>
+            <p>Decode batch codes and print product &amp; expiry stickers for Zebra ZD230.</p>
             <div class="card-footer">
                 <span class="card-label" style="color: var(--purple);">Open System</span>
                 <div class="card-arrow" style="background: var(--purple-light);">
+                    <i class="fa-solid fa-arrow-right"></i>
+                </div>
+            </div>
+        </a>
+
+        <!-- Manufacturer Label Printing -->
+        <a href="Tiny%20Togs%20Label%20Printing/manufacturer.php" target="_blank" class="sys-card orange fade-up d4">
+            <div class="card-icon-wrap">
+                <i class="fa-solid fa-industry"></i>
+            </div>
+            <h2>Manufacturer Labels</h2>
+            <p>Print importer name, address, contact details, and SLS certification stickers.</p>
+            <div class="card-footer">
+                <span class="card-label" style="color: var(--orange);">Open System</span>
+                <div class="card-arrow" style="background: var(--orange-light);">
                     <i class="fa-solid fa-arrow-right"></i>
                 </div>
             </div>
