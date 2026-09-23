@@ -245,12 +245,15 @@ if (isset($_REQUEST['action'])) {
             box-shadow: var(--shadow-sm); border: 1px solid #E2E8F0; overflow: hidden;
         }
         .sticker-canvas .sc-importer {
-            font-size: 10px; font-weight: 800; line-height: 1.2; text-transform: uppercase;
-            margin-bottom: 4px; color: #000; display: -webkit-box; -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical; overflow: hidden;
+            font-size: 9.5px; font-weight: 800; line-height: 1.15; text-transform: uppercase;
+            margin-bottom: 3px; color: #000; word-break: break-word;
+        }
+        .sticker-canvas .sc-address {
+            font-size: 7.5px; font-weight: 700; line-height: 1.15; color: #111;
+            word-break: break-word; white-space: normal; margin-bottom: 2px;
         }
         .sticker-canvas .sc-info {
-            font-size: 8px; font-weight: 700; line-height: 1.35; color: #111;
+            font-size: 7.5px; font-weight: 700; line-height: 1.15; color: #111;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
 
@@ -312,13 +315,26 @@ if (isset($_REQUEST['action'])) {
                 overflow: hidden;
             }
             .print-label {
-                width: 50mm; height: 25mm; box-sizing: border-box; padding: 1mm 3mm; overflow: hidden;
+                width: 50mm; height: 25mm; box-sizing: border-box; padding: 0.8mm 2.5mm; overflow: hidden;
                 font-family: Arial, sans-serif; color: #000; background: #fff;
                 display: flex; flex-direction: column; justify-content: center;
             }
             .print-label:first-child { margin-right: 2mm; }
-            .print-importer { font-weight: 800; font-size: 9.5pt; line-height: 1.15; text-transform: uppercase; max-height: 22pt; overflow: hidden; margin-bottom: 1.5mm; }
-            .print-info { font-size: 7.5pt; line-height: 1.25; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+            /* Standard Font Sizes */
+            .print-importer { font-weight: 800; font-size: 8.8pt; line-height: 1.1; text-transform: uppercase; margin-bottom: 0.6mm; word-break: break-word; }
+            .print-address  { font-size: 7pt; line-height: 1.12; font-weight: 700; word-break: break-word; white-space: normal; margin-bottom: 0.5mm; }
+            .print-info     { font-size: 7pt; line-height: 1.12; font-weight: 700; white-space: nowrap; overflow: hidden; }
+
+            /* Compact Layout for Longer Addresses */
+            .print-label.compact .print-importer { font-size: 8pt; margin-bottom: 0.4mm; }
+            .print-label.compact .print-address  { font-size: 6.2pt; line-height: 1.08; margin-bottom: 0.4mm; }
+            .print-label.compact .print-info     { font-size: 6.2pt; line-height: 1.08; }
+
+            /* Ultra-Compact Layout for Very Long Addresses */
+            .print-label.ultra-compact .print-importer { font-size: 7.5pt; margin-bottom: 0.3mm; }
+            .print-label.ultra-compact .print-address  { font-size: 5.5pt; line-height: 1.05; margin-bottom: 0.3mm; }
+            .print-label.ultra-compact .print-info     { font-size: 5.5pt; line-height: 1.05; }
         }
     </style>
 </head>
@@ -415,10 +431,10 @@ if (isset($_REQUEST['action'])) {
             <div class="preview-container">
                 <div class="preview-label">50mm x 25mm Format Preview</div>
                 <div class="sticker-canvas">
-                    <div class="sc-importer" id="prevImporter">IMPORTER NAME</div>
-                    <div class="sc-info" id="prevAddress">Addr: No 123, Galle Road, Colombo 03</div>
-                    <div class="sc-info" id="prevContact">Tel: +94 11 234 5678</div>
-                    <div class="sc-info" id="prevSls">SLS: SLS 1234:2020</div>
+                    <div class="sc-importer" id="prevImporter">FALCON STATIONERY PVT LTD</div>
+                    <div class="sc-address" id="prevAddress">79, Dambakanda Estate, Kurunegala</div>
+                    <div class="sc-info" id="prevContact">0761407875</div>
+                    <div class="sc-info" id="prevSls">SLS: 123:2026</div>
                 </div>
             </div>
 
@@ -437,6 +453,15 @@ if (isset($_REQUEST['action'])) {
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
+function formatSls(sls) {
+    if (!sls) return '';
+    let trimmed = sls.trim();
+    if (/^sls/i.test(trimmed)) {
+        return trimmed;
+    }
+    return 'SLS: ' + trimmed;
+}
+
 $(document).ready(function() {
 
     function updatePreview() {
@@ -445,10 +470,10 @@ $(document).ready(function() {
         let tel  = $('#contactNo').val().trim();
         let sls  = $('#slsCert').val().trim();
 
-        $('#prevImporter').text(name || 'IMPORTER NAME');
-        $('#prevAddress').text('Addr: ' + (addr || '—'));
-        $('#prevContact').text('Tel: ' + (tel || '—'));
-        $('#prevSls').text('SLS: ' + (sls || '—'));
+        $('#prevImporter').text(name || 'FALCON STATIONERY PVT LTD');
+        $('#prevAddress').text(addr || '79, Dambakanda Estate, Kurunegala');
+        $('#prevContact').text(tel || '0761407875');
+        $('#prevSls').text(sls ? formatSls(sls) : 'SLS: 123:2026');
     }
 
     $('#importerName, #importerAddress, #contactNo, #slsCert').on('input', updatePreview);
@@ -549,6 +574,15 @@ $(document).ready(function() {
         if (!tel)  { alert("Please enter the Contact No."); return; }
         if (!sls)  { alert("Please enter the SLS Certification info."); return; }
 
+        let slsFormatted = formatSls(sls);
+        let totalLen = name.length + addr.length + tel.length + slsFormatted.length;
+        let sizeClass = '';
+        if (totalLen > 110 || addr.length > 60) {
+            sizeClass = 'ultra-compact';
+        } else if (totalLen > 70 || addr.length > 35) {
+            sizeClass = 'compact';
+        }
+
         // Auto-save importer details to database
         $.post('manufacturer.php', {
             action: 'save_importer',
@@ -569,11 +603,11 @@ $(document).ready(function() {
                 container.append(currentRow);
             }
             currentRow.append(`
-                <div class="print-label">
+                <div class="print-label ${sizeClass}">
                     <div class="print-importer">${name}</div>
-                    <div class="print-info">Addr: ${addr}</div>
-                    <div class="print-info">Tel: ${tel}</div>
-                    <div class="print-info">SLS: ${sls}</div>
+                    <div class="print-address">${addr}</div>
+                    ${tel ? `<div class="print-info">${tel}</div>` : ''}
+                    ${slsFormatted ? `<div class="print-info">${slsFormatted}</div>` : ''}
                 </div>
             `);
         }
