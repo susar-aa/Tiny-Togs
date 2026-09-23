@@ -350,9 +350,9 @@ if (isset($_REQUEST['action'])) {
 
 <header class="header">
     <div class="header-brand">
-        <div class="brand-icon"><i class="fa-solid fa-industry"></i></div>
+        <div class="brand-icon"><i class="fa-solid fa-truck-ramp-box"></i></div>
         <div class="brand-text">
-            <span class="brand-title">Manufacturer Label Studio</span>
+            <span class="brand-title">Importer Label Studio</span>
             <span class="brand-subtitle">Tiny Togs</span>
         </div>
     </div>
@@ -374,7 +374,7 @@ if (isset($_REQUEST['action'])) {
         <div class="form-container">
 
             <div>
-                <h1 class="section-header">Configure Manufacturer Sticker</h1>
+                <h1 class="section-header">Configure Importer Sticker</h1>
                 <p class="section-desc">Enter importer details, address, contact, and SLS certification to print stickers.</p>
             </div>
 
