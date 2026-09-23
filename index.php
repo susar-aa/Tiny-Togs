@@ -288,12 +288,12 @@
             </div>
         </a>
 
-        <!-- Manufacturer Label Printing -->
+        <!-- Importer Label Printing -->
         <a href="Tiny%20Togs%20Label%20Printing/manufacturer.php" target="_blank" class="sys-card orange fade-up d4">
             <div class="card-icon-wrap">
-                <i class="fa-solid fa-industry"></i>
+                <i class="fa-solid fa-truck-ramp-box"></i>
             </div>
-            <h2>Manufacturer Labels</h2>
+            <h2>Importer Label Printing</h2>
             <p>Print importer name, address, contact details, and SLS certification stickers.</p>
             <div class="card-footer">
                 <span class="card-label" style="color: var(--orange);">Open System</span>
