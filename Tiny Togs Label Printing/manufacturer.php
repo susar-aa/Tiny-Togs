@@ -244,6 +244,11 @@ if (isset($_REQUEST['action'])) {
             font-family: Arial, sans-serif; display: flex; flex-direction: column; justify-content: center;
             box-shadow: var(--shadow-sm); border: 1px solid #E2E8F0; overflow: hidden;
         }
+        .sticker-canvas .sc-headline {
+            font-size: 7px; font-weight: 800; line-height: 1; text-transform: uppercase;
+            letter-spacing: 0.04em; margin-bottom: 3px; color: #000; border-bottom: 1px solid #ccc;
+            display: inline-block; padding-bottom: 1px; align-self: flex-start;
+        }
         .sticker-canvas .sc-importer {
             font-size: 9.5px; font-weight: 800; line-height: 1.15; text-transform: uppercase;
             margin-bottom: 3px; color: #000; word-break: break-word;
@@ -322,16 +327,19 @@ if (isset($_REQUEST['action'])) {
             .print-label:first-child { margin-right: 2mm; }
 
             /* Standard Font Sizes */
+            .print-headline { font-weight: 800; font-size: 6.5pt; line-height: 1; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.5mm; border-bottom: 0.5pt solid #000; display: inline-block; padding-bottom: 0.2mm; align-self: flex-start; }
             .print-importer { font-weight: 800; font-size: 8.8pt; line-height: 1.1; text-transform: uppercase; margin-bottom: 0.6mm; word-break: break-word; }
             .print-address  { font-size: 7pt; line-height: 1.12; font-weight: 700; word-break: break-word; white-space: normal; margin-bottom: 0.5mm; }
             .print-info     { font-size: 7pt; line-height: 1.12; font-weight: 700; white-space: nowrap; overflow: hidden; }
 
             /* Compact Layout for Longer Addresses */
+            .print-label.compact .print-headline { font-size: 5.8pt; margin-bottom: 0.3mm; }
             .print-label.compact .print-importer { font-size: 8pt; margin-bottom: 0.4mm; }
             .print-label.compact .print-address  { font-size: 6.2pt; line-height: 1.08; margin-bottom: 0.4mm; }
             .print-label.compact .print-info     { font-size: 6.2pt; line-height: 1.08; }
 
             /* Ultra-Compact Layout for Very Long Addresses */
+            .print-label.ultra-compact .print-headline { font-size: 5.2pt; margin-bottom: 0.2mm; }
             .print-label.ultra-compact .print-importer { font-size: 7.5pt; margin-bottom: 0.3mm; }
             .print-label.ultra-compact .print-address  { font-size: 5.5pt; line-height: 1.05; margin-bottom: 0.3mm; }
             .print-label.ultra-compact .print-info     { font-size: 5.5pt; line-height: 1.05; }
@@ -431,6 +439,7 @@ if (isset($_REQUEST['action'])) {
             <div class="preview-container">
                 <div class="preview-label">50mm x 25mm Format Preview</div>
                 <div class="sticker-canvas">
+                    <div class="sc-headline">IMPORTER DETAILS</div>
                     <div class="sc-importer" id="prevImporter">FALCON STATIONERY PVT LTD</div>
                     <div class="sc-address" id="prevAddress">79, Dambakanda Estate, Kurunegala</div>
                     <div class="sc-info" id="prevContact">0761407875</div>
@@ -604,6 +613,7 @@ $(document).ready(function() {
             }
             currentRow.append(`
                 <div class="print-label ${sizeClass}">
+                    <div class="print-headline">IMPORTER DETAILS</div>
                     <div class="print-importer">${name}</div>
                     <div class="print-address">${addr}</div>
                     ${tel ? `<div class="print-info">${tel}</div>` : ''}
