@@ -422,7 +422,7 @@ if (isset($_REQUEST['action'])) {
                 </div>
 
                 <button class="btn btn-primary btn-print-large" id="mainPrintBtn">
-                    <i class="fa-solid fa-print"></i> Generate &amp; Print Manufacturer Stickers
+                    <i class="fa-solid fa-print"></i> Generate &amp; Print Importer Stickers
                 </button>
             </div>
 
