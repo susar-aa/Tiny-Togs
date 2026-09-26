@@ -479,10 +479,19 @@ $(document).ready(function() {
         let tel  = $('#contactNo').val().trim();
         let sls  = $('#slsCert').val().trim();
 
-        $('#prevImporter').text(name || 'FALCON STATIONERY PVT LTD');
-        $('#prevAddress').text(addr || '79, Dambakanda Estate, Kurunegala');
-        $('#prevContact').text(tel || '0761407875');
-        $('#prevSls').text(sls ? formatSls(sls) : 'SLS: 123:2026');
+        let hasAny = name || addr || tel || sls;
+
+        if (!hasAny) {
+            $('#prevImporter').text('FALCON STATIONERY PVT LTD').show();
+            $('#prevAddress').text('79, Dambakanda Estate, Kurunegala').show();
+            $('#prevContact').text('0761407875').show();
+            $('#prevSls').text('SLS: 123:2026').show();
+        } else {
+            $('#prevImporter').text(name).toggle(!!name);
+            $('#prevAddress').text(addr).toggle(!!addr);
+            $('#prevContact').text(tel).toggle(!!tel);
+            $('#prevSls').text(sls ? formatSls(sls) : '').toggle(!!sls);
+        }
     }
 
     $('#importerName, #importerAddress, #contactNo, #slsCert').on('input', updatePreview);
@@ -578,13 +587,14 @@ $(document).ready(function() {
         let sls  = $('#slsCert').val().trim();
         let qty  = parseInt($('#stickerQty').val()) || 1;
 
-        if (!name) { alert("Please enter the Importer's Name."); return; }
-        if (!addr) { alert("Please enter the Address."); return; }
-        if (!tel)  { alert("Please enter the Contact No."); return; }
-        if (!sls)  { alert("Please enter the SLS Certification info."); return; }
-
         let slsFormatted = formatSls(sls);
         let totalLen = name.length + addr.length + tel.length + slsFormatted.length;
+
+        if (!totalLen) {
+            alert("Please enter at least one field to print.");
+            return;
+        }
+
         let sizeClass = '';
         if (totalLen > 110 || addr.length > 60) {
             sizeClass = 'ultra-compact';
@@ -592,16 +602,18 @@ $(document).ready(function() {
             sizeClass = 'compact';
         }
 
-        // Auto-save importer details to database
-        $.post('manufacturer.php', {
-            action: 'save_importer',
-            importer_name: name,
-            address: addr,
-            contact_no: tel,
-            sls_cert: sls
-        }, function() {
-            loadPresets();
-        });
+        // Auto-save importer details to database if importer name is present
+        if (name) {
+            $.post('manufacturer.php', {
+                action: 'save_importer',
+                importer_name: name,
+                address: addr,
+                contact_no: tel,
+                sls_cert: sls
+            }, function() {
+                loadPresets();
+            });
+        }
 
         let container = $('#print-container').empty();
         let currentRow = null;
@@ -614,8 +626,8 @@ $(document).ready(function() {
             currentRow.append(`
                 <div class="print-label ${sizeClass}">
                     <div class="print-headline">IMPORTER DETAILS</div>
-                    <div class="print-importer">${name}</div>
-                    <div class="print-address">${addr}</div>
+                    ${name ? `<div class="print-importer">${name}</div>` : ''}
+                    ${addr ? `<div class="print-address">${addr}</div>` : ''}
                     ${tel ? `<div class="print-info">${tel}</div>` : ''}
                     ${slsFormatted ? `<div class="print-info">${slsFormatted}</div>` : ''}
                 </div>
